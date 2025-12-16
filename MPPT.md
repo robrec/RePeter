@@ -147,7 +147,7 @@ MPPT lohnt sich bei kleinen Panels **nur**, wenn:
 
 ---
 
-## Faustregeln (praxisbewährt)
+## Mögliche Richtwerte an Panel zu Laderegler Empfehlung
 
 | Setup                    | Empfehlung         |
 | ------------------------ | ------------------ |
