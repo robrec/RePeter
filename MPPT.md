@@ -2,7 +2,7 @@ Sachen die ich gerne vorher gewusst hätte...
 
 # Heute :MPPT
 
-[__TOC__]
+__TOC__
 
 ### Warum MPPT grundsätzlich gut ist
 
