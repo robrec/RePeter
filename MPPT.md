@@ -1,10 +1,7 @@
 Sachen die ich gerne vorher gewusst hätte...
 
 # Heute :MPPT
-
-__TOC__
-
-### Warum MPPT grundsätzlich gut ist
+## Warum MPPT grundsätzlich gut ist
 
 Ein Solarpanel hat **keine feste Spannung**.
 Für jede Beleuchtung gibt es **einen Punkt**, an dem
@@ -12,13 +9,13 @@ Für jede Beleuchtung gibt es **einen Punkt**, an dem
 > **Leistung = Spannung × Strom maximal ist**
 > → der **Maximum Power Point (MPP)**
 
-#### Ohne MPPT
+### Ohne MPPT
 
 * Der Verbraucher (z. B. Akku + Lader) **zwingt** dem Panel eine Spannung auf
 * Meist liegt diese **nicht** im MPP
 * Ergebnis: Ein Teil der möglichen Leistung bleibt ungenutzt
 
-#### Mit MPPT
+### Mit MPPT
 
 * Ein Regler misst kontinuierlich:
 
@@ -33,14 +30,14 @@ Für jede Beleuchtung gibt es **einen Punkt**, an dem
 
 ---
 
-### der Knackpunkt: kleine Panels & kleine Spannungen
+## der Knackpunkt: kleine Panels & kleine Spannungen
 
 Bei **kleinen 5 V / 3 W Panels** kippt die Rechnung.
 Nicht, weil MPPT „schlecht“ ist – sondern weil **die Verluste dominieren**.
 
 ---
 
-#### A) MPPT braucht einen Schaltregler
+### A) MPPT braucht einen Schaltregler
 
 MPPT ist **immer** ein DC/DC-Wandler (Buck, Boost oder Buck-Boost).
 
@@ -57,7 +54,7 @@ Diese Verluste sind **nahezu konstant**, egal ob du
 
 ---
 
-#### B) Kleine Spannung = wenig „Regelspielraum“
+### B) Kleine Spannung = wenig „Regelspielraum“
 
 Beispiel 5 V Panel:
 
@@ -80,7 +77,7 @@ Aber hier gilt:
 
 ---
 
-#### C) Wirkungsgrad vs. absolute Leistung
+### C) Wirkungsgrad vs. absolute Leistung
 
 Annahmen:
 
@@ -99,7 +96,7 @@ Netto:
 
 ---
 
-#### D) Startproblem bei Low Voltage / Low Power
+### D) Startproblem bei Low Voltage / Low Power
 
 Viele MPPT-ICs haben:
 
@@ -116,11 +113,11 @@ Ergebnis bei diffusem Licht:
 
 ---
 
-### Warum lineare Lader oft **effizienter** sind
+## Warum lineare Lader oft **effizienter** sind
 
 Jetzt kommt der kontraintuitive Teil:
 
-#### Linearer Lader (z. B. CN3065)
+### Linearer Lader (z. B. CN3065)
 
 * Kein Schalten
 * Kein Eigenverbrauch in der Regelung
@@ -136,7 +133,7 @@ Das ist eine **passive MPPT** durch Quellenbegrenzung.
 
 ---
 
-### Wann MPPT bei kleinen Panels trotzdem Sinn macht
+## Wann MPPT bei kleinen Panels trotzdem Sinn macht
 
 MPPT lohnt sich bei kleinen Panels **nur**, wenn:
 
@@ -150,7 +147,7 @@ MPPT lohnt sich bei kleinen Panels **nur**, wenn:
 
 ---
 
-### Faustregeln (praxisbewährt)
+## Faustregeln (praxisbewährt)
 
 | Setup                    | Empfehlung         |
 | ------------------------ | ------------------ |
@@ -162,9 +159,9 @@ MPPT lohnt sich bei kleinen Panels **nur**, wenn:
 
 ---
 
-### Testrechnung mit einem 3W 5V Panel und TP4056/CN3063/CN3791
+## Testrechnung mit einem 3W 5V Panel und TP4056/CN3063/CN3791
 
-#### Solarpanel
+### Solarpanel
 
 * **Nennleistung:** 3 W
 * **Nennspannung:** 5 V
@@ -179,16 +176,16 @@ MPPT lohnt sich bei kleinen Panels **nur**, wenn:
 
 ---
 
-#### Akku
+### Akku
 
 * 1S Li-Ion
 * **Ladespannung:** 4,2 V
 
 ---
 
-#### Linearer Lader: **CN3065 / TP4056**
+### Linearer Lader: **CN3065 / TP4056**
 
-##### Annahmen
+#### Annahmen
 
 * Ladestrom begrenzt auf **300 mA** (solar-tauglich)
 * Akkuspannung im Mittel während des Ladens: **3,8 V**
@@ -196,21 +193,21 @@ MPPT lohnt sich bei kleinen Panels **nur**, wenn:
 
 ---
 
-##### Leistung
+#### Leistung
 
-###### Eingangsleistung
+##### Eingangsleistung
 
 [
 P_{in} = 4{,}8V \times 0{,}3A = 1{,}44W
 ]
 
-###### Ausgangsleistung
+##### Ausgangsleistung
 
 [
 P_{out} = 3{,}8V \times 0{,}3A = 1{,}14W
 ]
 
-###### Verlustleistung (Wärme)
+##### Verlustleistung (Wärme)
 
 [
 P_{loss} = 1{,}44W - 1{,}14W = 0{,}30W
@@ -223,7 +220,7 @@ P_{loss} = 1{,}44W - 1{,}14W = 0{,}30W
 
 ---
 
-##### Wichtiger Punkt
+#### Wichtiger Punkt
 
 * **Kein Schaltverlust**
 * **Kein Eigenverbrauch**
@@ -234,13 +231,13 @@ P_{loss} = 1{,}44W - 1{,}14W = 0{,}30W
 
 ---
 
-#### MPPT-Schaltregler: **CN3791**
+### MPPT-Schaltregler: **CN3791**
 
 Jetzt die „Hightech“-Variante.
 
 ---
 
-##### Annahmen (realistisch, nicht ideal)
+#### Annahmen (realistisch, nicht ideal)
 
 * MPPT hält Panel bei **Vmp = 4,8 V**
 * Panel liefert real **1,5 W**
@@ -249,21 +246,21 @@ Jetzt die „Hightech“-Variante.
 
 ---
 
-##### Leistung
+#### Leistung
 
-###### Eingangsleistung
+##### Eingangsleistung
 
 [
 P_{in} = 1{,}5W
 ]
 
-###### Nach Schaltverlust
+##### Nach Schaltverlust
 
 [
 P_{switch} = 1{,}5W \times 0{,}8 = 1{,}2W
 ]
 
-###### Abzüglich Eigenverbrauch
+##### Abzüglich Eigenverbrauch
 
 [
 P_{out} = 1{,}2W - 0{,}03W = \mathbf{1{,}17W}
@@ -271,13 +268,13 @@ P_{out} = 1{,}2W - 0{,}03W = \mathbf{1{,}17W}
 
 ---
 
-##### Realität-Check
+#### Realität-Check
 
 Das ist der **Best Case**.
 
 Jetzt die Probleme:
 
-###### Mindestleistung
+##### Mindestleistung
 
 CN3791 braucht:
 
@@ -299,7 +296,7 @@ Neue Rechnung:
 
 ---
 
-#### Direkter Vergleich
+### Direkter Vergleich
 
 | Szenario                           | Leistung in Akku          |
 | ---------------------------------- | ------------------------- |
@@ -310,15 +307,15 @@ Neue Rechnung:
 
 ---
 
-#### Warum der Linear-Lader gewinnt
+### Warum der Linear-Lader gewinnt
 
-###### CN3065 / TP4056
+##### CN3065 / TP4056
 
 * Verluste **proportional**
 * Kein Fix-Overhead
 * Funktioniert von **mW bis W**
 
-###### CN3791
+##### CN3791
 
 * Fixe Verluste
 * Schaltverluste dominant bei kleiner Leistung
@@ -326,14 +323,14 @@ Neue Rechnung:
 
 ---
 
-#### Der entscheidende Satz
+### Der entscheidende Satz
 
 > **MPPT gewinnt Prozent – aber verliert Milliwatt.**
 > Bei einem 3 W / 5 V Panel brauchst du Milliwatt.
 
 ---
 
-#### Empfehlung
+### Empfehlung
 
 Für **3 W / 5 V → 1S Li-Ion**:
 
