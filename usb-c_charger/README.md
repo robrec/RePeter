@@ -18,6 +18,14 @@ Das Board ermöglicht es, den RePeter über einen handelsüblichen USB-C Anschlu
 - ✅ Einfache Integration in das RePeter-System
 - ✅ Kompatibel mit handelsüblichen USB-C Netzteilen (5V)
 
+## 3D-Ansichten
+
+### Vorderseite
+![USB-C Adapter Vorderseite](3D_USB-C_RePeter_V1_front.png)
+
+### Rückseite
+![USB-C Adapter Rückseite](3DUSB-C_RePeter_V1_back.png)
+
 ## Technische Daten
 
 - **Eingangsspannung**: 5V DC über USB-C
@@ -27,23 +35,23 @@ Das Board ermöglicht es, den RePeter über einen handelsüblichen USB-C Anschlu
 ## Dateien in diesem Ordner
 
 ### Fertigungsdaten
-- **`Gerber_USB-C_RePeter_V1.zip`**: Gerber-Dateien für die PCB-Fertigung
-- **`BOM_USB-C_Adapter_USB-C_RePeter_V1.xlsx`**: Stückliste (Bill of Materials) mit allen benötigten Bauteilen
-- **`PickAndPlace_USB-C_RePeter_V1.xlsx`**: Pick-and-Place Datei für die automatische Bestückung
+- **[Gerber_USB-C_RePeter_V1.zip](Gerber_USB-C_RePeter_V1.zip)**: Gerber-Dateien für die PCB-Fertigung
+- **[BOM_USB-C_Adapter_USB-C_RePeter_V1.xlsx](BOM_USB-C_Adapter_USB-C_RePeter_V1.xlsx)**: Stückliste (Bill of Materials) mit allen benötigten Bauteilen
+- **[PickAndPlace_USB-C_RePeter_V1.xlsx](PickAndPlace_USB-C_RePeter_V1.xlsx)**: Pick-and-Place Datei für die automatische Bestückung
 
 ### Dokumentation
-- **`SCH_USB-C_RePeter_V1.pdf`**: Schaltplan des Adapters
+- **[SCH_USB-C_RePeter_V1.pdf](SCH_USB-C_RePeter_V1.pdf)**: Schaltplan des Adapters
 
 ### 3D-Visualisierung
-- **`3D_USB-C_RePeter_V1_front.png`**: 3D-Ansicht der Vorderseite
-- **`3DUSB-C_RePeter_V1_back.png`**: 3D-Ansicht der Rückseite
-- **`3D_USB-C_RePeter_V1.zip`**: 3D-Modell des Boards
+- **[3D_USB-C_RePeter_V1_front.png](3D_USB-C_RePeter_V1_front.png)**: 3D-Ansicht der Vorderseite
+- **[3DUSB-C_RePeter_V1_back.png](3DUSB-C_RePeter_V1_back.png)**: 3D-Ansicht der Rückseite
+- **[3D_USB-C_RePeter_V1.zip](3D_USB-C_RePeter_V1.zip)**: 3D-Modell des Boards
 
 ## Fertigung
 
 ### PCB bestellen
 
-1. Die `Gerber_USB-C_RePeter_V1.zip` Datei bei einem PCB-Hersteller hochladen (z.B. JLCPCB, PCBWay, Aisler)
+1. Die [Gerber_USB-C_RePeter_V1.zip](Gerber_USB-C_RePeter_V1.zip) Datei bei einem PCB-Hersteller hochladen (z.B. JLCPCB, PCBWay, Aisler)
 2. Standard-Einstellungen sind in der Regel ausreichend:
    - Material: FR4
    - Dicke: 1,6 mm
@@ -52,11 +60,11 @@ Das Board ermöglicht es, den RePeter über einen handelsüblichen USB-C Anschlu
 
 ### Bauteile
 
-Die benötigten Bauteile sind in der `BOM_USB-C_Adapter_USB-C_RePeter_V1.xlsx` aufgelistet.
+Die benötigten Bauteile sind in der [BOM_USB-C_Adapter_USB-C_RePeter_V1.xlsx](BOM_USB-C_Adapter_USB-C_RePeter_V1.xlsx) aufgelistet.
 
 ### Bestückung
 
-Bei automatischer Bestückung kann die `PickAndPlace_USB-C_RePeter_V1.xlsx` verwendet werden.
+Bei automatischer Bestückung kann die [PickAndPlace_USB-C_RePeter_V1.xlsx](PickAndPlace_USB-C_RePeter_V1.xlsx) verwendet werden.
 
 Alternativ kann das Board auch manuell bestückt werden - die Bauteile sind in der Regel einfach zu verlöten.
 
