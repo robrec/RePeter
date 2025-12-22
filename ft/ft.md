@@ -21,3 +21,4 @@ Das Board wird nach dem Fertigen getestet und mit ultraschall gereinigt.
 - Buzzer (Lose oder Verbaut) +2€
 
 Kontakt via [MeshCore](meshcore://11009b81e7ed61924ca851315dac2b6846a70ec33001e9eeedc8b9b97d5e924e53d0c99549695539543cd82af2aceed0807352477eeb7faf97d6074347d2ce779958959f2ad0cb43a6c991e5c71d4b251978615c32df0ea668e482383990bbfa2abbef6d170d81426172747a69)
+PublicKey: 9b81e7ed61924ca851315dac2b6846a70ec33001e9eeedc8b9b97d5e924e53d0
