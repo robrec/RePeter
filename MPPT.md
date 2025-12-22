@@ -1,6 +1,7 @@
 Sachen die ich gerne vorher gewusst hätte...
 
-# Heute :MPPT
+# Heute: MPPT
+
 ## Warum MPPT grundsätzlich gut ist
 
 Ein Solarpanel hat **keine feste Spannung**.
@@ -235,8 +236,6 @@ P_{loss} = 1{,}44W - 1{,}14W = 0{,}30W
 
 Jetzt die „Hightech“-Variante.
 
----
-
 #### Annahmen (realistisch, nicht ideal)
 
 * MPPT hält Panel bei **Vmp = 4,8 V**
@@ -269,10 +268,6 @@ P_{out} = 1{,}2W - 0{,}03W = \mathbf{1{,}17W}
 ---
 
 #### Realität-Check
-
-Das ist der **Best Case**.
-
-Jetzt die Probleme:
 
 ##### Mindestleistung
 
