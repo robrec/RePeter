@@ -19,35 +19,22 @@ Set-Location $ProjectDir
 # Erstelle PlatformIO src Struktur falls nötig
 $srcDir = "$ProjectDir\src"
 if (!(Test-Path $srcDir)) {
-    Write-Host "[1/4] Erstelle PlatformIO Struktur..." -ForegroundColor Yellow
     New-Item -ItemType Directory -Path $srcDir -Force | Out-Null
-    
-    # Kopiere .ino nach src als .cpp (PlatformIO erwartet .cpp in src/)
-    if (Test-Path "$ProjectDir\ESP32_RTC_TimeSync.ino") {
-        Copy-Item "$ProjectDir\ESP32_RTC_TimeSync.ino" "$srcDir\main.cpp"
-        Write-Host "  Sketch nach src/main.cpp kopiert" -ForegroundColor Green
-    } else {
-        Write-Host "  FEHLER: ESP32_RTC_TimeSync.ino nicht gefunden!" -ForegroundColor Red
-        exit 1
-    }
-} else {
-    # Aktualisiere main.cpp falls .ino neuer ist
-    $inoFile = "$ProjectDir\ESP32_RTC_TimeSync.ino"
-    $cppFile = "$srcDir\main.cpp"
-    
-    if ((Test-Path $inoFile) -and (Test-Path $cppFile)) {
-        $inoTime = (Get-Item $inoFile).LastWriteTime
-        $cppTime = (Get-Item $cppFile).LastWriteTime
-        
-        if ($inoTime -gt $cppTime) {
-            Write-Host "[1/4] Aktualisiere geänderten Sketch..." -ForegroundColor Yellow
-            Copy-Item $inoFile $cppFile -Force
-            Write-Host "  main.cpp aktualisiert" -ForegroundColor Green
-        } else {
-            Write-Host "[1/4] Sketch ist aktuell" -ForegroundColor Green
-        }
-    }
 }
+
+Write-Host "[1/4] Kopiere Sketch nach src/main.cpp..." -ForegroundColor Yellow
+
+# Kopiere .ino nach src als .cpp (PlatformIO erwartet .cpp in src/)
+$inoFile = "$ProjectDir\ESP32_RTC_TimeSync.ino"
+$cppFile = "$srcDir\main.cpp"
+
+if (!(Test-Path $inoFile)) {
+    Write-Host "  FEHLER: ESP32_RTC_TimeSync.ino nicht gefunden!" -ForegroundColor Red
+    exit 1
+}
+
+Copy-Item $inoFile $cppFile -Force
+Write-Host "  Sketch kopiert" -ForegroundColor Green
 
 # Kompilieren mit verbose output
 Write-Host "`n[2/4] Kompiliere mit PlatformIO (verbose)..." -ForegroundColor Yellow
