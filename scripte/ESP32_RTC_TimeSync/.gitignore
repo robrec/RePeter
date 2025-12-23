@@ -1,0 +1,11 @@
+# PlatformIO Build-Verzeichnisse
+.pio/
+.vscode/
+
+# Build-Artefakte
+firmware/
+src/main.cpp
+
+# System-Dateien
+.DS_Store
+Thumbs.db

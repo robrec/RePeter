@@ -30,13 +30,13 @@
 #define RGB_LED_COUNT 1
 
 // WLAN Zugangsdaten
-const char* ssid = "iPhone 15pro Max Robert";
+const char* ssid = "WLAN SSID";
 const char* password = "somerandompassword";
 
 // NTP Server Einstellungen
 const char* ntpServer = "pool.ntp.org";
-const long gmtOffset_sec = 3600;        // GMT+1 für Deutschland (Winter)
-const int daylightOffset_sec = 3600;    // +1 Stunde für Sommerzeit
+const long gmtOffset_sec = 0;           // UTC Zeit (keine Anpassung)
+const int daylightOffset_sec = 0;       // Keine Sommerzeit
 
 // OLED Display Einstellungen
 #define SCREEN_WIDTH 128
@@ -56,6 +56,8 @@ Adafruit_NeoPixel rgbLed(RGB_LED_COUNT, RGB_LED_PIN, NEO_GRB + NEO_KHZ800);
 // Variable um zu prüfen ob Display verfügbar ist
 bool displayAvailable = false;
 bool rgbLedAvailable = false;
+bool syncSuccess = false;
+String errorMessage = "";
 
 // RGB LED Funktionen
 void setLED(uint8_t r, uint8_t g, uint8_t b) {
@@ -94,13 +96,12 @@ void setup() {
   Serial.begin(115200);
   delay(1000);
   
-  Serial.println("\n\nESP32 RTC Time Sync");
+  Serial.println("\n\nBreMesh RePeter RTC time Sync");
   Serial.println("====================\n");
   
   // RGB LED initialisieren (optional)
   rgbLed.begin();
-  rgbLed.setBrightness(50); // 20% Helligkeit
-  setLED(255, 0, 0); // Rot beim Start
+  rgbLed.setBrightness(25); // 10% Helligkeit
   rgbLedAvailable = true;
   Serial.println("RGB LED bereit");
   
@@ -114,44 +115,54 @@ void setup() {
     display.setTextSize(1);
     display.setTextColor(SSD1306_WHITE);
     display.setCursor(0, 0);
-    display.println("ESP32 RTC Sync");
-    display.println("==============");
+    display.println("BreMesh RePeter RTC");
+    display.println("=======Setup=======");
+    display.println("\nWarte auf RTC...");
     display.display();
-    delay(1000);
     Serial.println("OLED Display bereit");
   } else {
     Serial.println("OLED Display nicht gefunden - läuft ohne Display");
   }
   
-  // RTC initialisieren
-  if (!rtc.begin()) {
-    Serial.println("RTC nicht gefunden! Bitte Verkabelung prüfen.");
-    if (displayAvailable) {
-      display.clearDisplay();
-      display.setCursor(0, 0);
-      display.println("FEHLER:");
-      display.println("RTC nicht");
-      display.println("gefunden!");
-      display.display();
+  // Warte auf RTC (weiß pulsend)
+  Serial.println("Warte auf TinyRTC via I2C...");
+  bool rtcFound = false;
+  int pulseValue = 0;
+  int pulseDirection = 5;
+  
+  while (!rtcFound) {
+    // Weiß pulsen
+    setLED(pulseValue, pulseValue, pulseValue);
+    pulseValue += pulseDirection;
+    if (pulseValue >= 255 || pulseValue <= 0) {
+      pulseDirection = -pulseDirection;
     }
-    while (1) delay(1000);
+    
+    // Prüfe ob RTC verfügbar ist
+    if (rtc.begin()) {
+      rtcFound = true;
+      Serial.println("RTC gefunden!");
+      if (displayAvailable) {
+        display.clearDisplay();
+        display.setCursor(0, 0);
+        display.println("BreMesh RePeter RTC");
+        display.println("=======Setup=======");
+        display.println("\nRTC: OK");
+        display.display();
+      }
+      setLED(255, 0, 0); // Rot
+      delay(500);
+    } else {
+      delay(10);
+    }
   }
-  
-  Serial.println("RTC gefunden");
-  if (displayAvailable) {
-    display.println("\nRTC: OK");
-    display.display();
-    delay(500);
-  }
-  
-  setLED(255, 0, 0); // Rot
   
   // Mit WLAN verbinden
   Serial.print("Verbinde mit WLAN: ");
   Serial.println(ssid);
   
   if (displayAvailable) {
-    display.println("\nWLAN...");
+    display.println("\nWLAN Hotspot...");
     display.display();
   }
   
@@ -167,12 +178,16 @@ void setup() {
   
   if (WiFi.status() != WL_CONNECTED) {
     Serial.println("\nWLAN Verbindung fehlgeschlagen!");
+    errorMessage = "WLAN fehlt";
     if (displayAvailable) {
       display.clearDisplay();
       display.setCursor(0, 0);
       display.println("FEHLER:");
       display.println("WLAN Verbindung");
       display.println("fehlgeschlagen!");
+      display.println();
+      display.println("SSID:");
+      display.println(ssid);
       display.display();
     }
     return;
@@ -204,6 +219,7 @@ void setup() {
   struct tm timeinfo;
   if (!getLocalTime(&timeinfo)) {
     Serial.println("Zeit konnte nicht abgerufen werden!");
+    errorMessage = "NTP Sync fehlt";
     if (displayAvailable) {
       display.clearDisplay();
       display.setCursor(0, 0);
@@ -238,6 +254,7 @@ void setup() {
   rtc.adjust(now);
   Serial.println("\nRTC wurde mit aktueller Zeit programmiert!");
   
+  syncSuccess = true;
   setLED(0, 255, 0); // Grün - Fertig!
   
   if (displayAvailable) {
@@ -256,10 +273,13 @@ void setup() {
 }
 
 void loop() {
-  // Zeit vom RTC auslesen und anzeigen
+  // Zeit vom RTC auslesen (UTC)
   DateTime now = rtc.now();
   
-  Serial.print("RTC Zeit: ");
+  // Deutsche Zeit berechnen (UTC+1)
+  DateTime deTime = now + TimeSpan(0, 1, 0, 0); // +1 Stunde
+  
+  Serial.print("RTC Zeit (UTC): ");
   Serial.print(now.day(), DEC);
   Serial.print('.');
   Serial.print(now.month(), DEC);
@@ -274,6 +294,21 @@ void loop() {
   if (now.second() < 10) Serial.print('0');
   Serial.println(now.second(), DEC);
   
+  Serial.print("DE Zeit (CET):  ");
+  Serial.print(deTime.day(), DEC);
+  Serial.print('.');
+  Serial.print(deTime.month(), DEC);
+  Serial.print('.');
+  Serial.print(deTime.year(), DEC);
+  Serial.print(" ");
+  Serial.print(deTime.hour(), DEC);
+  Serial.print(':');
+  if (deTime.minute() < 10) Serial.print('0');
+  Serial.print(deTime.minute(), DEC);
+  Serial.print(':');
+  if (deTime.second() < 10) Serial.print('0');
+  Serial.println(deTime.second(), DEC);
+  
   // Zeit auf OLED anzeigen (wenn verfügbar)
   if (displayAvailable) {
     display.clearDisplay();
@@ -281,33 +316,36 @@ void loop() {
     // Datum
     display.setTextSize(1);
     display.setCursor(0, 0);
-    display.print("Datum: ");
-    if (now.day() < 10) display.print('0');
-    display.print(now.day(), DEC);
+    display.println("DE Zeit (CET):");
+    if (deTime.day() < 10) display.print('0');
+    display.print(deTime.day(), DEC);
     display.print('.');
-    if (now.month() < 10) display.print('0');
-    display.print(now.month(), DEC);
+    if (deTime.month() < 10) display.print('0');
+    display.print(deTime.month(), DEC);
     display.print('.');
-    display.println(now.year(), DEC);
+    display.println(deTime.year(), DEC);
     
     // Uhrzeit (groß)
     display.setTextSize(2);
     display.setCursor(10, 20);
-    if (now.hour() < 10) display.print('0');
-    display.print(now.hour(), DEC);
+    if (deTime.hour() < 10) display.print('0');
+    display.print(deTime.hour(), DEC);
     display.print(':');
-    if (now.minute() < 10) display.print('0');
-    display.print(now.minute(), DEC);
+    if (deTime.minute() < 10) display.print('0');
+    display.print(deTime.minute(), DEC);
     display.print(':');
-    if (now.second() < 10) display.print('0');
-    display.println(now.second(), DEC);
+    if (deTime.second() < 10) display.print('0');
+    display.println(deTime.second(), DEC);
     
-    // Temperatur (falls verfügbar)
+    // Status
     display.setTextSize(1);
     display.setCursor(0, 50);
-    display.print("Temp: ");
-    display.print(rtc.getTemperature());
-    display.println(" C");
+    if (syncSuccess) {
+      display.print("Status: OK");
+    } else {
+      display.print("Fehler: ");
+      display.print(errorMessage);
+    }
     
     display.display();
   }
