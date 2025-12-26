@@ -1,6 +1,6 @@
 # RePeter NameTag
 
-Ein elektronisches Namensschild als PCB im Badge-Format für das BreMesh.de Projekt, welches aus viel Langeweile entwickelt wurde.
+Ein unnötig-kompliziertes elektronisches Namensschild als PCB im Badge-Format für das BreMesh.de Projekt, welches aus viel Langeweile entwickelt wurde.
 
 Ich habe initial 20 Stück bestellt und werde diese an Jörg übergeben zum Verteils im Rahmen des Stammtisches.
 
