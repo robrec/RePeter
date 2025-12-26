@@ -4,11 +4,6 @@ Ein elektronisches Namensschild als PCB im Badge-Format für das BreMesh.de Proj
 
 Ich habe initial 20 Stück bestellt und werde diese an Jörg übergeben zum Verteils im Rahmen des Stammtisches.
 
-Die Komponenten zum bestücken sind verfügbar und können bei Bartzi via MeshCore angefragt werden(Selbstkostenpreis).
-Auf nachfrage kann ich diese auch vereinzelnd bestücken - einfach nett fragen ob ich die Zeit grade finde.
-
-Bei Interesse an 10+ Stück mit oder ohne Komponenten - ebenfalls bitte kontakt aufnehmen.
-
 ![Badge Front](Badge_Front.png)
 ![Badge Back](Badge_Back.png)
 
