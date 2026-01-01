@@ -249,7 +249,7 @@ class KeySearcher:
             # Build main panel
             main_panel = Panel(
                 content,
-                title="[bold bright_white on blue] 🔍 BreMesh MeshCore PubKey Searcher [/bold bright_white on blue]",
+                title="[bold bright_white on blue] 🔍 BreMesh MeshCore Ed25519 PubKey Prefix Searcher [/bold bright_white on blue]",
                 subtitle="[dim white]Ctrl+C to stop • P to pause • R to resume • L to limit CPU[/dim white]",
                 border_style="bright_blue",
                 padding=(1, 2)

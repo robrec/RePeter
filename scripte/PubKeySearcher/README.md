@@ -1,4 +1,4 @@
-# BreMesh MeshCore PubKey Searcher
+# BreMesh MeshCore Ed25519 PubKey Prefix Searcher
 
 Ein hochperformantes Python-Script zur Generierung von Ed25519-Schlüsselpaaren mit benutzerdefinierten Public-Key-Präfixen.
 
@@ -13,6 +13,7 @@ Diese Website ist perfekt für schnelle, unkomplizierte Key-Generierung und ich 
 **GitHub:** [https://github.com/agessaman/meshcore-web-keygen](https://github.com/agessaman/meshcore-web-keygen)
 
 **Verwenden Sie dieses Tool, wenn:**
+
 - Sie mehrere Keys mit unterschiedlichen Patterns gleichzeitig suchen möchten
 - Sie komplexere/längere Patterns (7+ Zeichen) benötigen
 - Sie eine Pattern-Liste haben und alle Keys in einem Durchgang generieren möchten
@@ -122,13 +123,13 @@ python key_searcher.py -f searchFor.txt --max-pattern-length 7 --output-dir foun
 
 ### Command Line Argumente
 
-| Argument                 | Beschreibung                             | Standard          |
-| ------------------------ | ---------------------------------------- | ----------------- |
-| `--pattern`, `-p`        | Einzelnes Pattern suchen (mit Auto-Exit) | -                 |
-| `--patterns-file`, `-f`  | Pfad zur Pattern-Datei                   | `searchFor.txt`   |
-| `--max-pattern-length`   | Max. Länge für Duplikat-Erkennung        | `7`               |
-| `--output-dir`           | Ausgabeverzeichnis für gefundene Keys    | `found_keys`      |
-| `--verbose`, `-v`        | Zeigt ETA-Berechnungsformel an           | -                 |
+| Argument                    | Beschreibung                             | Standard          |
+| --------------------------- | ---------------------------------------- | ----------------- |
+| `--pattern`, `-p`       | Einzelnes Pattern suchen (mit Auto-Exit) | -                 |
+| `--patterns-file`, `-f` | Pfad zur Pattern-Datei                   | `searchFor.txt` |
+| `--max-pattern-length`    | Max. Länge für Duplikat-Erkennung      | `7`             |
+| `--output-dir`            | Ausgabeverzeichnis für gefundene Keys   | `found_keys`    |
+| `--verbose`, `-v`       | Zeigt ETA-Berechnungsformel an           | -                 |
 
 ### Umgebungsvariablen
 
@@ -174,12 +175,12 @@ BREMESH
 
 ### Während der Suche
 
-| Taste      | Aktion                              |
-| ---------- | ----------------------------------- |
-| `P`        | Suche pausieren                     |
-| `R`        | Suche fortsetzen                    |
-| `L`        | CPU limitieren (~75%, pausiert 25% der Worker) |
-| `Ctrl+C`   | Suche beenden                       |
+| Taste      | Aktion                                         |
+| ---------- | ---------------------------------------------- |
+| `P`      | Suche pausieren                                |
+| `R`      | Suche fortsetzen                               |
+| `L`      | CPU limitieren (~75%, pausiert 25% der Worker) |
+| `Ctrl+C` | Suche beenden                                  |
 
 ### Anzeige-Elemente
 
