@@ -7,19 +7,42 @@ Ein Python-Script für **MeshCore**, das mit allen verfügbaren CPU-Kernen nach 
 - Multi-Core Processing für maximale Performance
 - Sucht nach benutzerdefinierten Patterns am Anfang des Public Keys (Base58)
 - Automatisches Speichern von gefundenen Key-Paaren
-- Intelligente Duplikat-Vermeidung: Patterns bis 6 Zeichen werden nur 1x gespeichert
+- Duplikat-Vermeidung: Patterns bis 7 Zeichen werden nur 1x gespeichert (konfigurierbar)
 - Live-Statistiken während der Suche
-- Sicheres Speichern von Private und Public Keys
-- Epoch-Timestamp für chronologische Sortierung
+- **Docker-Support**: Einfache Containerisierung für portables Deployment
 
 ## Installation
 
-### Voraussetzungen
+### Option 1: Docker (empfohlen)
+
+**Vorteile:**
+
+- ✅ Keine lokale Python-Installation nötig
+- ✅ Isolierte Umgebung
+- ✅ Portabel auf jedem System (Windows, Linux, macOS)
+- ✅ Einfaches Deployment auf Servern
+- ✅ Automatische Dependency-Verwaltung
+
+**Voraussetzungen:**
+
+- Docker & Docker Compose installiert
+
+**Quick Start:**
+
+```bash
+docker-compose up
+```
+
+📖 **Vollständige Docker-Dokumentation:** [DOCKER.md](DOCKER.md)
+
+### Option 2: Python (lokal)
+
+**Voraussetzungen:**
 
 - Python 3.7 oder höher
 - pip (Python Package Manager)
 
-### Dependencies installieren
+**Dependencies installieren:**
 
 ```bash
 pip install cryptography base58
@@ -45,11 +68,58 @@ Die mitgelieferte Liste enthält bereits viele interessante Patterns!
 
 ### 2. Script starten
 
+**Python (direkt):**
+
 ```bash
 python key_searcher.py
 ```
 
+**Mit Optionen:**
+
+```bash
+# Duplikat-Grenze auf 10 Zeichen setzen
+python key_searcher.py --max-pattern-length 10
+
+# Andere Pattern-Datei verwenden
+python key_searcher.py --patterns-file custom_patterns.txt
+
+# Hilfe anzeigen
+python key_searcher.py --help
+```
+
+**Docker:**
+
+```bash
+# Container starten
+docker-compose up
+
+# Im Hintergrund
+docker-compose up -d
+
+# Logs ansehen
+docker-compose logs -f
+```
+
+👉 **Mehr Docker-Optionen:** Siehe [DOCKER.md](DOCKER.md) für erweiterte Konfiguration, CPU/Memory-Limits, Multi-Container-Setup, etc.
+
 Das Script nutzt automatisch alle verfügbaren CPU-Kerne.
+
+#### Konfiguration
+
+**Environment Variable (Docker):**
+
+In `docker-compose.yml`:
+
+```yaml
+environment:
+  - MAX_PATTERN_LENGTH=10  # Patterns bis 10 Zeichen nur 1x speichern
+```
+
+**Command-Line Arguments (Python):**
+
+- `--max-pattern-length N` - Maximale Pattern-Länge für Duplikat-Vermeidung (Standard: 7)
+- `--patterns-file FILE` - Pfad zur Pattern-Datei (Standard: searchFor.txt)
+- `--output-dir DIR` - Ausgabe-Verzeichnis (Standard: found_keys)
 
 ### 3. Script beenden
 
@@ -72,7 +142,7 @@ Beispiel: CAFEM37BEuiceCLzuduYBHiYTsjfWSTaCtYdnas5JGkV
 
 ## Duplikat-Vermeidung
 
-Das Script erkennt automatisch bereits gefundene Patterns (bis 6 Zeichen) im `found_keys/` Ordner:
+Das Script erkennt automatisch bereits gefundene Patterns (bis 7 Zeichen) im `found_keys/` Ordner:
 
 - Beim Start werden alle vorhandenen Dateien gescannt
 - Bereits gefundene Patterns werden übersprungen
@@ -103,7 +173,7 @@ Die Wahrscheinlichkeit, ein Pattern zu finden (Base58-Alphabet hat 58 Zeichen):
 - 6 Zeichen (z.B. AAAAAA): ~1 zu 38 Milliarden
 - 8 Zeichen (z.B. DEADBEEF): ~1 zu 128 Billionen
 
-**Tipp:** Kürzere Patterns (4-6 Zeichen) sind realistisch zu finden!
+**Tipp:** Kürzere Patterns (4-7 Zeichen) sind realistisch zu finden!
 
 ## MeshCore Integration
 

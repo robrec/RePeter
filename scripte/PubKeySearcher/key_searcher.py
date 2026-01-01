@@ -7,6 +7,7 @@ Nutzt alle verfügbaren CPU-Kerne für maximale Performance
 
 import os
 import multiprocessing as mp
+import argparse
 from datetime import datetime
 from pathlib import Path
 from typing import Set, List
@@ -23,13 +24,15 @@ except ImportError as e:
 
 
 class KeySearcher:
-    def __init__(self, patterns_file: str = "searchFor.txt", output_dir: str = "found_keys"):
+    def __init__(self, patterns_file: str = "searchFor.txt", output_dir: str = "found_keys", max_pattern_length: int = 7):
         self.patterns = self.load_patterns(patterns_file)
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
+        self.max_pattern_length = max_pattern_length
         
         print(f"Geladene Patterns: {len(self.patterns)}")
         print(f"Ausgabeordner: {self.output_dir.absolute()}")
+        print(f"Max. Pattern-Länge für Duplikat-Vermeidung: {self.max_pattern_length}")
     
     def load_patterns(self, filename: str) -> Set[str]:
         """Lädt die Patterns aus der Datei"""
@@ -47,7 +50,7 @@ class KeySearcher:
         
         return patterns
     
-    def generate_and_check_key(self, worker_id: int, check_count: int, shared_counter, shared_found, found_patterns_dict) -> None:
+    def generate_and_check_key(self, worker_id: int, check_count: int, shared_counter, shared_found, found_patterns_dict, max_pattern_length: int) -> None:
         """
         Generiert Keys und prüft sie gegen die Patterns
         Läuft in einem separaten Prozess
@@ -71,8 +74,8 @@ class KeySearcher:
                 # Prüfe alle Patterns
                 for pattern in self.patterns:
                     if public_base58.startswith(pattern):
-                        # Prüfe ob kurzes Pattern (<=6 Zeichen) bereits gefunden wurde
-                        if len(pattern) <= 6:
+                        # Prüfe ob kurzes Pattern (<=max_pattern_length) bereits gefunden wurde
+                        if len(pattern) <= max_pattern_length:
                             if pattern in found_patterns_dict:
                                 # Bereits gefunden, überspringe
                                 continue
@@ -154,8 +157,8 @@ class KeySearcher:
             if len(parts) >= 2:
                 pattern = parts[1]  # Pattern ist nach dem Epoch-Timestamp
                 
-                # Nur Patterns bis 6 Zeichen berücksichtigen
-                if len(pattern) <= 6:
+                # Nur Patterns bis max_pattern_length berücksichtigen
+                if len(pattern) <= self.max_pattern_length:
                     existing_patterns.add(pattern)
         
         return existing_patterns
@@ -178,7 +181,7 @@ class KeySearcher:
         print(f"Bereits gefunden (werden übersprungen): {len(existing_patterns)}")
         if existing_patterns:
             print(f"  -> {', '.join(sorted(existing_patterns))}")
-        print(f"Hinweis: Patterns bis 6 Zeichen werden nur 1x gespeichert")
+        print(f"Hinweis: Patterns bis {self.max_pattern_length} Zeichen werden nur 1x gespeichert")
         print(f"\nStarte Suche... (Strg+C zum Beenden)\n")
         
         # Shared Counter für Statistiken
@@ -199,7 +202,7 @@ class KeySearcher:
             for i in range(num_workers):
                 p = mp.Process(
                     target=self.generate_and_check_key,
-                    args=(i, 0, shared_counter, shared_found, found_patterns_dict)
+                    args=(i, 0, shared_counter, shared_found, found_patterns_dict, self.max_pattern_length)
                 )
                 p.start()
                 processes.append(p)
@@ -223,9 +226,35 @@ class KeySearcher:
 
 def main():
     """Hauptfunktion"""
+    parser = argparse.ArgumentParser(
+        description='Ed25519 Public Key Pattern Searcher für MeshCore',
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    parser.add_argument(
+        '--max-pattern-length',
+        type=int,
+        default=int(os.getenv('MAX_PATTERN_LENGTH', '7')),
+        help='Maximale Pattern-Länge für Duplikat-Vermeidung (Standard: 7, kann auch via MAX_PATTERN_LENGTH ENV gesetzt werden)'
+    )
+    parser.add_argument(
+        '--patterns-file',
+        type=str,
+        default='searchFor.txt',
+        help='Pfad zur Pattern-Datei (Standard: searchFor.txt)'
+    )
+    parser.add_argument(
+        '--output-dir',
+        type=str,
+        default='found_keys',
+        help='Ausgabe-Verzeichnis für gefundene Keys (Standard: found_keys)'
+    )
+    
+    args = parser.parse_args()
+    
     searcher = KeySearcher(
-        patterns_file="searchFor.txt",
-        output_dir="found_keys"
+        patterns_file=args.patterns_file,
+        output_dir=args.output_dir,
+        max_pattern_length=args.max_pattern_length
     )
     
     # Nutze alle verfügbaren CPU-Kerne
