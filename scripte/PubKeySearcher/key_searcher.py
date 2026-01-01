@@ -121,7 +121,7 @@ class KeySearcher:
         return KeySearcher.format_time(seconds)
     
     @staticmethod
-    def display_process(display_queue, total_all_time, start_time, num_workers, pause_event, startup_info):
+    def display_process(display_queue, total_all_time, start_time, num_workers, pause_event, cpu_limit_event, startup_info):
         """Dedicated process for displaying live statistics using Rich Live"""
         from rich.live import Live
         
@@ -153,9 +153,16 @@ class KeySearcher:
             content.add_column(justify="left", style="bright_white")
             
             # Config section
+            is_cpu_limited = cpu_limit_event.is_set()
+            workers_text = f"[bold cyan]{num_workers}[/bold cyan]"
+            if is_cpu_limited:
+                workers_paused = max(1, int(num_workers * 0.25))
+                workers_active = num_workers - workers_paused
+                workers_text = f"[bold cyan]{num_workers}[/bold cyan] [dim yellow](Limit: {workers_active})[/dim yellow]"
+            
             content.add_row(
                 "[bold bright_cyan]Patterns:[/bold bright_cyan]", f"[bold green]{startup_info['num_patterns']}[/bold green]",
-                "[bold bright_cyan]Workers:[/bold bright_cyan]", f"[bold cyan]{num_workers}[/bold cyan]"
+                "[bold bright_cyan]Workers:[/bold bright_cyan]", workers_text
             )
             if startup_info['existing_patterns']:
                 content.add_row(
@@ -171,10 +178,16 @@ class KeySearcher:
             content.add_row("[dim]" + "─" * 40 + "[/dim]", "", "", "")
             
             # Status
+            is_cpu_limited = cpu_limit_event.is_set()
             if is_paused:
                 status = "[bold yellow]⏸ PAUSED[/bold yellow]"
             else:
                 status = "[bold green]▶ RUNNING[/bold green]"
+                if is_cpu_limited:
+                    workers_paused = max(1, int(num_workers * 0.25))
+                    workers_active = num_workers - workers_paused
+                    target_pct = int((workers_active / num_workers) * 100)
+                    status += f" [dim yellow](CPU ~{target_pct}%)[/dim yellow]"
             content.add_row("[bold bright_cyan]Status:[/bold bright_cyan]", status, "", "")
             
             # Stats
@@ -237,7 +250,7 @@ class KeySearcher:
             main_panel = Panel(
                 content,
                 title="[bold bright_white on blue] 🔍 BreMesh MeshCore PubKey Searcher [/bold bright_white on blue]",
-                subtitle="[dim white]Ctrl+C to stop • P to pause • R to resume[/dim white]",
+                subtitle="[dim white]Ctrl+C to stop • P to pause • R to resume • L to limit CPU[/dim white]",
                 border_style="bright_blue",
                 padding=(1, 2)
             )
@@ -510,7 +523,7 @@ class KeySearcher:
     
     def generate_and_check_key(self, worker_id: int, shared_counter, shared_found,
                                 found_patterns_dict, session_found_list, shared_patterns, start_time,
-                                display_queue, pause_event, stop_event, single_pattern_mode) -> None:
+                                display_queue, pause_event, stop_event, worker_pause_event, single_pattern_mode) -> None:
         """Worker process for key generation"""
         local_checked = 0
         local_patterns_cache = set(shared_patterns.keys())  # Local cache for performance
@@ -518,7 +531,13 @@ class KeySearcher:
         
         try:
             while not stop_event.is_set():
+                # Main wait for pause/resume
                 pause_event.wait()
+                # Worker-specific pause (for CPU limiting)
+                worker_pause_event.wait()
+                
+                if stop_event.is_set():
+                    break
                 
                 # Refresh pattern cache every 10000 keys
                 local_checked_total = local_checked
@@ -584,13 +603,17 @@ class KeySearcher:
     
     def save_key(self, private_bytes: bytes, public_bytes: bytes, public_hex: str, pattern: str) -> None:
         """Save found key to file"""
-        epoch = int(datetime.now().timestamp())
-        filepath = self.output_dir / f"{epoch}_{pattern}.txt"
+        # Always use counter format: pattern_1.txt, pattern_2.txt, etc.
+        counter = 1
+        filepath = self.output_dir / f"{pattern}_{counter}.txt"
+        while filepath.exists():
+            counter += 1
+            filepath = self.output_dir / f"{pattern}_{counter}.txt"
+        
         private_hex = (private_bytes + public_bytes).hex().upper()
         
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write(f"Pattern Match: {pattern}\n")
-            f.write(f"Timestamp: {datetime.now().isoformat()}\n")
             f.write(f"Public Key (HEX): {public_hex}\n")
             f.write(f"Private Key (HEX): {private_hex}\n")
             f.write(f"\n{'='*70}\n")
@@ -608,9 +631,14 @@ class KeySearcher:
             return existing
         
         for file in self.output_dir.glob("*.txt"):
-            parts = file.stem.split('_', 1)
-            if len(parts) >= 2:
-                existing.add(parts[1])
+            # File format: pattern_1.txt, pattern_2.txt, etc.
+            stem = file.stem
+            # Remove counter suffix (_1, _2, etc.)
+            if '_' in stem:
+                parts = stem.rsplit('_', 1)
+                if parts[1].isdigit():
+                    stem = parts[0]
+            existing.add(stem)
         return existing
     
     def run(self, num_workers: int = None) -> None:
@@ -681,6 +709,12 @@ class KeySearcher:
         pause_event = mp.Event()
         pause_event.set()
         stop_event = mp.Event()  # For single pattern mode auto-exit
+        cpu_limit_event = mp.Event()  # CPU limit toggle (default: off)
+        
+        # Create individual pause events for each worker
+        worker_pause_events = [mp.Event() for _ in range(num_workers)]
+        for event in worker_pause_events:
+            event.set()  # All workers start running
         
         # Initialize shared patterns
         for pattern in self.patterns:
@@ -733,6 +767,19 @@ class KeySearcher:
                         elif key == 'R' and not pause_event.is_set():
                             pause_event.set()
                             display_queue.put({'force_update': True})
+                        elif key == 'L':
+                            if cpu_limit_event.is_set():
+                                cpu_limit_event.clear()
+                                # Resume all workers
+                                for event in worker_pause_events:
+                                    event.set()
+                            else:
+                                cpu_limit_event.set()
+                                # Pause 25% of workers (min 1)
+                                workers_to_pause = max(1, int(num_workers * 0.25))
+                                for i in range(workers_to_pause):
+                                    worker_pause_events[i].clear()
+                            display_queue.put({'force_update': True})
                     time.sleep(0.1)
             except Exception:
                 pass
@@ -743,7 +790,7 @@ class KeySearcher:
         # Start display process
         display_proc = mp.Process(
             target=self.display_process,
-            args=(display_queue, self.total_all_time, start_time, num_workers, pause_event, startup_info)
+            args=(display_queue, self.total_all_time, start_time, num_workers, pause_event, cpu_limit_event, startup_info)
         )
         display_proc.start()
         
@@ -755,7 +802,7 @@ class KeySearcher:
                     target=self.generate_and_check_key,
                     args=(i, shared_counter, shared_found, found_patterns_dict,
                           session_found_list, shared_patterns, start_time, display_queue, pause_event,
-                          stop_event, self.single_pattern_mode)
+                          stop_event, worker_pause_events[i], self.single_pattern_mode)
                 )
                 p.start()
                 processes.append(p)

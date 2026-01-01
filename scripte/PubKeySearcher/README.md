@@ -27,6 +27,7 @@ Perfekt für einprägsame Keys für **MeshCore** Repeater!
 ### Steuerung
 
 - **Pause/Resume** - Mit `P` pausieren, mit `R` fortsetzen
+- **CPU-Limitierung** - Mit `L` CPU auf ~75% limitieren (pausiert 25% der Worker)
 - **Graceful Shutdown** - Sauberes Beenden mit `Ctrl+C` und Zusammenfassung
 - **Tastatur-Listener** - Reagiert auf Eingaben während der Suche
 - **Single Pattern Mode** - Suche nach einzelnem Pattern mit Auto-Exit bei Fund
@@ -159,11 +160,12 @@ BREMESH
 
 ### Während der Suche
 
-| Taste      | Aktion           |
-| ---------- | ---------------- |
-| `P`      | Suche pausieren  |
-| `R`      | Suche fortsetzen |
-| `Ctrl+C` | Suche beenden    |
+| Taste      | Aktion                              |
+| ---------- | ----------------------------------- |
+| `P`        | Suche pausieren                     |
+| `R`        | Suche fortsetzen                    |
+| `L`        | CPU limitieren (~75%, pausiert 25% der Worker) |
+| `Ctrl+C`   | Suche beenden                       |
 
 ### Anzeige-Elemente
 
@@ -178,6 +180,8 @@ Das Interface besteht aus drei separaten Panels:
 **Legende:**
 
 - **No Dup Cap:** Zeigt ab welcher Pattern-Laenge Mehrfach-Funde erlaubt sind
+- **Workers:** Zeigt Anzahl der aktiven Worker, bei CPU-Limit: `4 (Limit: 3)`
+- **Status:** Zeigt RUNNING/PAUSED, bei CPU-Limit zusaetzlich: `(CPU ~75%)`
 - **Time Estimates:** `Zeitschaetzung (gefunden/gesucht)` pro Laengen-Kategorie
 - **Session:** Zeigt `gefunden / erwartet` Keys in der aktuellen Session
 - **Per-Length ETAs:** Einzelne ETA-Timer fuer jede Pattern-Laenge in Rarity-Farben:
@@ -195,10 +199,7 @@ Das Interface besteht aus drei separaten Panels:
 - **Progressbar:** Zeigt verstrichene Zeit im Verhaeltnis zur erwarteten Zeit
   - Cyan (<50%): unterwegs
   - Gelb (50-100%): bald erwartet
-  - Gruen (>100% oder negativ): ueberfaellig oder frueher Fund
-- **Credits System:** Bei jedem gefundenen Key wird der Fortschritt um 100% reduziert
-  - Progress kann negativ werden (Key frueher als erwartet gefunden)
-  - Progress >100% bedeutet ueberfaellig
+  - Gruen (>100%): ueberfaellig - Fund sollte bald kommen
 
 ## Ausgabe-Format
 
@@ -207,16 +208,16 @@ Gefundene Keys werden im Verzeichnis `found_keys/` gespeichert:
 ### Dateiname
 
 ```
-{timestamp}_{pattern}.txt
+{pattern}_1.txt
+{pattern}_2.txt  (bei Duplikaten für Patterns >7 Zeichen)
 ```
 
-Beispiel: `1735689600_CAFE.txt`
+Beispiel: `CAFE_1.txt`, `BREMESH_1.txt`, `BREMESH_2.txt`
 
 ### Dateiinhalt
 
 ```
 Pattern Match: CAFE
-Timestamp: 2026-01-01T12:00:00
 Public Key (HEX): CAFE1234567890ABCDEF...
 Private Key (HEX): ABCDEF1234567890...
 
@@ -249,9 +250,10 @@ Die Wahrscheinlichkeit, ein bestimmtes Präfix zu finden:
 ### Architektur
 
 - **Multiprocessing** - Ein Worker-Prozess pro CPU-Kern
+- **Worker-Management** - CPU-Limitierung durch selektives Pausieren von Workern
 - **Shared Memory** - Gemeinsame Zähler für alle Worker
-- **Queue-basierte Kommunikation** - Worker → Display-Prozess
-- **Event-basierte Pause** - Synchronisierte Pause über alle Worker
+- **Queue-basierte Kommunikation** - Worker zu Display-Prozess
+- **Event-basierte Steuerung** - Synchronisierte Pause und CPU-Limitierung über alle Worker
 
 ### Dateien
 
@@ -276,4 +278,4 @@ Pull Requests sind willkommen! Für größere Änderungen bitte erst ein Issue e
 
 ---
 
-**Viel Erfolg bei der Suche nach dem perfekten Key!**
+Viel Erfolg bei der Suche nach dem perfekten Key!
