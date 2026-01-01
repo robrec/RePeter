@@ -1,23 +1,23 @@
 # BreMesh MeshCore Ed25519 PubKey Prefix Searcher
 
-Ein hochperformantes Python-Script zur Generierung von Ed25519-Schlüsselpaaren mit benutzerdefinierten Public-Key-Präfixen.
+A high-performance Python script for generating Ed25519 key pairs with custom public key prefixes.
 
-Perfekt für einprägsame Keys für **MeshCore** Repeater!
+Perfect for memorable keys for **MeshCore** repeaters!
 
-## Empfehlung für einfache Keys
+## Recommendation for Simple Keys
 
-**Für einfache, einzelne Keys empfehle ich:** [https://gessaman.com/mc-keygen/](https://gessaman.com/mc-keygen/)
+**For simple, single keys I recommend:** [https://gessaman.com/mc-keygen/](https://gessaman.com/mc-keygen/)
 
-Diese Website ist perfekt für schnelle, unkomplizierte Key-Generierung und ich lege sie jedem ans Herz. Tatsächlich war diese Seite meine Inspiration für dieses Tool - ich wollte eine Möglichkeit schaffen, **mehrere komplexere Keys gleichzeitig zu suchen**, um Ressourcen zu schonen und Zeit zu sparen, wenn man mehrere Repeater mit benutzerdefinierten Patterns konfigurieren möchte.
+This website is perfect for quick, straightforward key generation and I highly recommend it. In fact, this site was my inspiration for this tool - I wanted to create a way to **search for multiple complex keys simultaneously**, to save resources and time when configuring multiple repeaters with custom patterns.
 
 **GitHub:** [https://github.com/agessaman/meshcore-web-keygen](https://github.com/agessaman/meshcore-web-keygen)
 
-**Verwenden Sie dieses Tool, wenn:**
+**Use this tool when:**
 
-- Sie mehrere Keys mit unterschiedlichen Patterns gleichzeitig suchen möchten
-- Sie komplexere/längere Patterns (7+ Zeichen) benötigen
-- Sie eine Pattern-Liste haben und alle Keys in einem Durchgang generieren möchten
-- Sie die volle CPU-Power Ihres Systems nutzen möchten
+- You want to search for multiple keys with different patterns simultaneously
+- You need more complex/longer patterns (7+ characters)
+- You have a pattern list and want to generate all keys in one run
+- You want to utilize the full CPU power of your system
 
 ![Interface](interface.png)
 
@@ -25,115 +25,115 @@ Diese Website ist perfekt für schnelle, unkomplizierte Key-Generierung und ich 
 
 ### Performance
 
-- **Multi-Core Processing** - Nutzt alle verfügbaren CPU-Kerne für maximale Geschwindigkeit
-- **Optimierte Schlüsselgenerierung** - Ed25519 Elliptic Curve Kryptographie
-- **HEX Format** - MeshCore-kompatibles Format (64-Zeichen HEX Public Key)
+- **Multi-Core Processing** - Uses all available CPU cores for maximum speed
+- **Optimized Key Generation** - Ed25519 Elliptic Curve Cryptography
+- **HEX Format** - MeshCore-compatible format (64-character HEX Public Key)
 
-### Benutzeroberfläche
+### User Interface
 
-- **Rich Live Display** - Flackerfreie Terminal-UI mit dem `rich` Framework
-- **Alternate Screen Buffer** - Professionelle Vollbild-Anzeige wie bei `htop`
-- **Drei-Panel-Layout** - Hauptstatistiken, ETA-Progressbar, gefundene Keys
-- **Farbcodierte Anzeige** - Übersichtliche Darstellung aller Statistiken
-- **CPU-Auslastungsanzeige** - Grafische Fortschrittsanzeige mit Farbcodierung
-- **Seltenheits-Indikatoren** - Farbige Markierung je nach Pattern-Länge
-- **Fortschrittsanzeige** - Zeigt gefundene/gesuchte Patterns pro Längen-Kategorie
+- **Rich Live Display** - Flicker-free terminal UI using the `rich` framework
+- **Alternate Screen Buffer** - Professional full-screen display like `htop`
+- **Three-Panel Layout** - Main statistics, ETA progress bar, found keys
+- **Color-Coded Display** - Clear presentation of all statistics
+- **CPU Usage Display** - Graphical progress indicator with color coding
+- **Rarity Indicators** - Color marking based on pattern length
+- **Progress Display** - Shows found/searched patterns per length category
 
-### Steuerung
+### Control
 
-- **Pause/Resume** - Mit `P` pausieren, mit `R` fortsetzen
-- **CPU-Limitierung** - Mit `L` CPU auf ~75% limitieren (pausiert 25% der Worker)
-- **Graceful Shutdown** - Sauberes Beenden mit `Ctrl+C` und Zusammenfassung
-- **Tastatur-Listener** - Reagiert auf Eingaben während der Suche
-- **Single Pattern Mode** - Suche nach einzelnem Pattern mit Auto-Exit bei Fund
+- **Pause/Resume** - Pause with `P`, resume with `R`
+- **CPU Limiting** - Limit CPU to ~75% with `L` (pauses 25% of workers)
+- **Graceful Shutdown** - Clean exit with `Ctrl+C` and summary
+- **Keyboard Listener** - Responds to input during search
+- **Single Pattern Mode** - Search for single pattern with auto-exit on find
 
-### Statistiken
+### Statistics
 
-- **Live-Statistiken** - Echtzeit-Anzeige von Fortschritt und Geschwindigkeit
-- **Session-Stats** - Aktuelle Sitzung: Geprüfte Keys, gefundene Matches, Laufzeit
-- **All-Time-Stats** - Gesamtzahl geprüfter Keys über alle Sessions (persistent)
-- **Zeitschätzungen** - Berechnete Wahrscheinlichkeiten mit Fortschritt (gefunden/gesucht)
-- **Remaining Counter** - Zeigt verbleibende Patterns insgesamt und pro Kategorie
-- **Next Key ETA** - Mathematische Schätzung bis zum nächsten Fund mit dynamischem Progressbar
-- **Per-Length ETAs** - Einzelne ETA-Timer pro Pattern-Länge (5-10, 11+ in Rot)
-- **Session Progress** - Zeigt gefundene vs. erwartete Keys (z.B. `1 / 1.4`)
-- **Verbose Mode** - Zeigt die ETA-Berechnungsformel mit `-v` Flag
+- **Live Statistics** - Real-time display of progress and speed
+- **Session Stats** - Current session: Keys checked, matches found, runtime
+- **All-Time Stats** - Total keys checked across all sessions (persistent)
+- **Time Estimates** - Calculated probabilities with progress (found/searched)
+- **Remaining Counter** - Shows remaining patterns total and per category
+- **Next Key ETA** - Mathematical estimate until next find with dynamic progress bar
+- **Per-Length ETAs** - Individual ETA timers per pattern length (5-10, 11+ in red)
+- **Session Progress** - Shows found vs. expected keys (e.g., `1 / 1.4`)
+- **Verbose Mode** - Shows ETA calculation formula with `-v` flag
 
-### Verwaltung
+### Management
 
-- **Pattern-Datei** - Externe Musterliste für einfache Anpassung
-- **Hot-Reload** - Pattern-Datei wird alle 30 Sekunden neu geladen (neue Patterns werden automatisch hinzugefügt)
-- **Duplikat-Erkennung** - Verhindert doppelte Funde für kurze Patterns (konfigurierbar via `--max-pattern-length`)
-- **No Dup Cap** - Patterns oberhalb der max-pattern-length können beliebig oft gefunden werden
-- **Persistente Speicherung** - Gefundene Keys werden sofort gespeichert
-- **JSON-Export** - MeshCore-kompatibles Import-Format
+- **Pattern File** - External pattern list for easy customization
+- **Hot-Reload** - Pattern file reloaded every 30 seconds (new patterns automatically added)
+- **Duplicate Detection** - Prevents duplicate finds for short patterns (configurable via `--max-pattern-length`)
+- **No Dup Cap** - Patterns above max-pattern-length can be found any number of times
+- **Persistent Storage** - Found keys saved immediately
+- **JSON Export** - MeshCore-compatible import format
 
 ## Installation
 
-### Voraussetzungen
+### Prerequisites
 
 - Python 3.7+
 - pip
 
-### Abhängigkeiten installieren
+### Install Dependencies
 
 ```bash
 pip install cryptography rich psutil
 ```
 
-## Verwendung
+## Usage
 
-### Schnellstart
+### Quick Start
 
 ```bash
 python key_searcher.py
 ```
 
-### Einzelnes Pattern suchen (mit Auto-Exit)
+### Search for Single Pattern (with Auto-Exit)
 
 ```bash
 python key_searcher.py --pattern CAFE
-# oder kurz:
+# or short:
 python key_searcher.py -p BREMESH
 ```
 
-Das Script beendet sich automatisch sobald das Pattern gefunden wurde.
+The script automatically exits once the pattern is found.
 
-### Mit eigener Pattern-Datei
+### With Custom Pattern File
 
 ```bash
-python key_searcher.py -f meine_patterns.txt
-# oder:
-python key_searcher.py --patterns-file meine_patterns.txt
+python key_searcher.py -f my_patterns.txt
+# or:
+python key_searcher.py --patterns-file my_patterns.txt
 ```
 
-### Mit ETA-Formel (Verbose Mode)
+### With ETA Formula (Verbose Mode)
 
 ```bash
 python key_searcher.py -v
 ```
 
-### Alle Optionen
+### All Options
 
 ```bash
 python key_searcher.py -f searchFor.txt --max-pattern-length 7 --output-dir found_keys -v
 ```
 
-## Konfiguration
+## Configuration
 
-### Command Line Argumente
+### Command Line Arguments
 
-| Argument                    | Beschreibung                             | Standard          |
-| --------------------------- | ---------------------------------------- | ----------------- |
-| `--pattern`, `-p`       | Einzelnes Pattern suchen (mit Auto-Exit) | -                 |
-| `--patterns-file`, `-f` | Pfad zur Pattern-Datei                   | `searchFor.txt` |
-| `--max-pattern-length`    | Max. Länge für Duplikat-Erkennung      | `7`             |
-| `--output-dir`            | Ausgabeverzeichnis für gefundene Keys   | `found_keys`    |
-| `--verbose`, `-v`       | Zeigt ETA-Berechnungsformel an           | -                 |
+| Argument                    | Description                            | Default          |
+| --------------------------- | -------------------------------------- | ---------------- |
+| `--pattern`, `-p`       | Search for single pattern (auto-exit)  | -                |
+| `--patterns-file`, `-f` | Path to pattern file                   | `searchFor.txt` |
+| `--max-pattern-length`    | Max length for duplicate detection     | `7`            |
+| `--output-dir`            | Output directory for found keys        | `found_keys`   |
+| `--verbose`, `-v`       | Show ETA calculation formula           | -                |
 
-### Umgebungsvariablen
+### Environment Variables
 
-Alternativ per Umgebungsvariablen konfigurierbar:
+Alternatively configurable via environment variables:
 
 **Windows PowerShell:**
 
@@ -151,9 +151,9 @@ export MAX_PATTERN_LENGTH=8
 python key_searcher.py
 ```
 
-### Pattern-Datei erstellen
+### Create Pattern File
 
-Erstelle eine Textdatei mit einem Pattern pro Zeile:
+Create a text file with one pattern per line:
 
 ```
 CAFE
@@ -164,72 +164,72 @@ ABCD
 BREMESH
 ```
 
-**Hinweise:**
+**Notes:**
 
-- Nur HEX-Zeichen erlaubt: `0-9` und `A-F`
-- Groß-/Kleinschreibung wird ignoriert
-- Zeilen mit `#` sind Kommentare
-- Leere Zeilen werden ignoriert
+- Only HEX characters allowed: `0-9` and `A-F`
+- Case insensitive
+- Lines starting with `#` are comments
+- Empty lines are ignored
 
-## Bedienung
+## Operation
 
-### Während der Suche
+### During Search
 
-| Taste      | Aktion                                         |
-| ---------- | ---------------------------------------------- |
-| `P`      | Suche pausieren                                |
-| `R`      | Suche fortsetzen                               |
-| `L`      | CPU limitieren (~75%, pausiert 25% der Worker) |
-| `Ctrl+C` | Suche beenden                                  |
+| Key        | Action                                    |
+| ---------- | ----------------------------------------- |
+| `P`      | Pause search                              |
+| `R`      | Resume search                             |
+| `L`      | Limit CPU (~75%, pauses 25% of workers)   |
+| `Ctrl+C` | Stop search                               |
 
-### Anzeige-Elemente
+### Display Elements
 
-Das Interface besteht aus drei separaten Panels:
+The interface consists of three separate panels:
 
-1. **Hauptstatistiken (blauer Rahmen)** - Config, Patterns, No Dup Cap, Status, Session/All-Time Stats, Time Estimates
-2. **ETA Progressbar (magenta Rahmen)** - Expected/Elapsed Zeit, Session Progress, Per-Length ETAs, Fortschrittsbalken
-3. **Found Keys (gruener Rahmen)** - Gefundene Keys mit vollstaendigem 64-Zeichen Public Key
+1. **Main Statistics (blue frame)** - Config, Patterns, No Dup Cap, Status, Session/All-Time Stats, Time Estimates
+2. **ETA Progress Bar (magenta frame)** - Expected/Elapsed time, Session Progress, Per-Length ETAs, progress bar
+3. **Found Keys (green frame)** - Found keys with complete 64-character Public Key
 
 ![Interface](interface.png)
 
-**Legende:**
+**Legend:**
 
-- **No Dup Cap:** Zeigt ab welcher Pattern-Laenge Mehrfach-Funde erlaubt sind
-- **Workers:** Zeigt Anzahl der aktiven Worker, bei CPU-Limit: `4 (Limit: 3)`
-- **Status:** Zeigt RUNNING/PAUSED, bei CPU-Limit zusaetzlich: `(CPU ~75%)`
-- **Time Estimates:** `Zeitschaetzung (gefunden/gesucht)` pro Laengen-Kategorie
-- **Session:** Zeigt `gefunden / erwartet` Keys in der aktuellen Session
-- **Per-Length ETAs:** Einzelne ETA-Timer fuer jede Pattern-Laenge in Rarity-Farben:
-  - Grau: 5 Zeichen oder weniger
-  - Weiss: 6 Zeichen
-  - Gruen: 7 Zeichen
-  - Blau: 8 Zeichen
-  - Lila: 9 Zeichen
-  - Orange: 10 Zeichen
-  - Rot: 11+ Zeichen
-- **Next Key ETA:** Mathematisch erwartete Zeit bis zum naechsten Fund basierend auf kombinierter Wahrscheinlichkeit:
+- **No Dup Cap:** Shows from which pattern length multiple finds are allowed
+- **Workers:** Shows number of active workers, with CPU limit: `4 (Limit: 3)`
+- **Status:** Shows RUNNING/PAUSED, with CPU limit additionally: `(CPU ~75%)`
+- **Time Estimates:** `Time estimate (found/searched)` per length category
+- **Session:** Shows `found / expected` keys in current session
+- **Per-Length ETAs:** Individual ETA timers for each pattern length in rarity colors:
+  - Gray: 5 characters or less
+  - White: 6 characters
+  - Green: 7 characters
+  - Blue: 8 characters
+  - Purple: 9 characters
+  - Orange: 10 characters
+  - Red: 11+ characters
+- **Next Key ETA:** Mathematically expected time until next find based on combined probability:
   ```
   ETA = 1 / ((n1/16^L1 + n2/16^L2 + ...) x keys_per_sec)
   ```
-- **Progressbar:** Zeigt verstrichene Zeit im Verhaeltnis zur erwarteten Zeit
-  - Cyan (<50%): unterwegs
-  - Gelb (50-100%): bald erwartet
-  - Gruen (>100%): ueberfaellig - Fund sollte bald kommen
+- **Progress Bar:** Shows elapsed time relative to expected time
+  - Cyan (<50%): in progress
+  - Yellow (50-100%): expected soon
+  - Green (>100%): overdue - find should come soon
 
-## Ausgabe-Format
+## Output Format
 
-Gefundene Keys werden im Verzeichnis `found_keys/` gespeichert:
+Found keys are saved in the `found_keys/` directory:
 
-### Dateiname
+### Filename
 
 ```
 {pattern}_1.txt
-{pattern}_2.txt  (bei Duplikaten für Patterns >7 Zeichen)
+{pattern}_2.txt  (for duplicates of patterns >7 characters)
 ```
 
-Beispiel: `CAFE_1.txt`, `BREMESH_1.txt`, `BREMESH_2.txt`
+Example: `CAFE_1.txt`, `BREMESH_1.txt`, `BREMESH_2.txt`
 
-### Dateiinhalt
+### File Content
 
 ```
 Pattern Match: CAFE
@@ -246,117 +246,117 @@ MeshCore Import Format:
 }
 ```
 
-Die generierten Key-Dateien enthalten zusätzlich detaillierte Konfigurationsanweisungen für Ihren Repeater.
+The generated key files additionally contain detailed configuration instructions for your repeater.
 
-## Keys auf dem Repeater konfigurieren
+## Configuring Keys on the Repeater
 
-Nach der erfolgreichen Generierung eines Keys mit Ihrem gewünschten Pattern müssen Sie diesen auf Ihrem MeshCore Repeater konfigurieren.
+After successfully generating a key with your desired pattern, you need to configure it on your MeshCore repeater.
 
-### Methode: USB Serial Console (Empfohlen)
+### Method: USB Serial Console (Recommended)
 
-Dies ist die schnellste Methode, wenn Sie Ihren Repeater direkt mit einem Computer verbinden können:
+This is the fastest method when you can directly connect your repeater to a computer:
 
-#### Schritt 1: USB-Verbindung herstellen
+#### Step 1: Establish USB Connection
 
-Verbinden Sie Ihren Repeater über USB mit Ihrem Computer.
+Connect your repeater to your computer via USB.
 
-#### Schritt 2: Console öffnen
+#### Step 2: Open Console
 
-Öffnen Sie die MeshCore Web Console oder verwenden Sie eine beliebige Terminal-Anwendung:
+Open the MeshCore Web Console or use any terminal application:
 
-- **Web Console**: Besuchen Sie [flasher.meshcore.co.uk](https://flasher.meshcore.co.uk)
-- **Terminal**: Verwenden Sie PuTTY, screen, oder ein anderes Serial-Terminal-Programm
+- **Web Console**: Visit [flasher.meshcore.co.uk](https://flasher.meshcore.co.uk)
+- **Terminal**: Use PuTTY, screen, or another serial terminal program
 
-#### Schritt 3: Private Key setzen
+#### Step 3: Set Private Key
 
-Führen Sie folgenden Befehl in der Console aus:
+Execute the following command in the console:
 
 ```
-set prv.key <IHR_128_ZEICHEN_PRIVATE_KEY>
+set prv.key <YOUR_128_CHARACTER_PRIVATE_KEY>
 ```
 
-Ersetzen Sie `<IHR_128_ZEICHEN_PRIVATE_KEY>` mit dem vollständigen 128-Zeichen Private Key aus Ihrer generierten Key-Datei.
+Replace `<YOUR_128_CHARACTER_PRIVATE_KEY>` with the complete 128-character Private Key from your generated key file.
 
-**Wichtig:** Verwenden Sie den kompletten 128-Zeichen Private Key. Der Befehl ändert den Private Key des Geräts sofort.
+**Important:** Use the complete 128-character Private Key. The command changes the device's Private Key immediately.
 
-#### Schritt 4: Änderung verifizieren
+#### Step 4: Verify Change
 
-Überprüfen Sie die Änderung, indem Sie den Public Key in den Geräteeinstellungen kontrollieren:
+Verify the change by checking the Public Key in the device settings:
 
-- Die ersten Zeichen sollten Ihrem gewünschten Pattern entsprechen
-- Der vollständige Public Key sollte mit dem generierten Key übereinstimmen
+- The first characters should match your desired pattern
+- The complete Public Key should match the generated key
 
-### Vorteile der Serial Console Methode
+### Advantages of Serial Console Method
 
-- Keine Companion-Firmware erforderlich
-- Änderung erfolgt sofort ohne Firmware-Wechsel
-- Schnell und unkompliziert bei Console-Erfahrung
-- Funktioniert mit MeshCore Web Console oder jedem Terminal-Programm
+- No companion firmware required
+- Change occurs immediately without firmware switch
+- Fast and straightforward with console experience
+- Works with MeshCore Web Console or any terminal program
 
 ### Troubleshooting
 
-**Häufige Probleme:**
+**Common Issues:**
 
-- **Key wird nicht angezeigt**: Stellen Sie sicher, dass Sie die Änderung gespeichert haben
-- **Falsches Key-Format**: Verwenden Sie den kompletten 128-Zeichen Private Key
-- **App erkennt Gerät nicht**: USB-Kabel ab- und wieder anstecken
-- **Firmware-Flash schlägt fehl**: Anderes USB-Kabel oder USB-Port versuchen
-- **Key-Import schlägt fehl**: Key-Generierung überprüfen und erneut versuchen
+- **Key not displayed**: Make sure you saved the change
+- **Incorrect key format**: Use the complete 128-character Private Key
+- **App doesn't detect device**: Disconnect and reconnect USB cable
+- **Firmware flash fails**: Try different USB cable or USB port
+- **Key import fails**: Verify key generation and try again
 
-**Verifizierungsschritte:**
+**Verification Steps:**
 
-1. Prüfen Sie, dass der angezeigte Public Key mit Ihrem generierten Key übereinstimmt
-2. Verifizieren Sie, dass die ersten Zeichen Ihrem gewünschten Pattern entsprechen
-3. Testen Sie die Verbindung, um sicherzustellen, dass das Gerät funktioniert
-4. Überprüfen Sie im MeshCore-Netzwerk, ob Ihr Gerät mit der neuen Kennung sichtbar ist
+1. Check that the displayed Public Key matches your generated key
+2. Verify that the first characters match your desired pattern
+3. Test the connection to ensure the device works
+4. Check in the MeshCore network if your device is visible with the new identifier
 
-**Pro-Tipp:** Bewahren Sie eine Sicherungskopie Ihres Private Keys an einem sicheren Ort auf. Sie benötigen ihn, falls Sie Ihre Gerätekonfiguration wiederherstellen müssen.
+**Pro Tip:** Keep a backup copy of your Private Key in a secure location. You'll need it if you have to restore your device configuration.
 
-## Zeitschätzungen
+## Time Estimates
 
-Die Wahrscheinlichkeit, ein bestimmtes Präfix zu finden:
+The probability of finding a specific prefix:
 
-| Präfix-Länge | Möglichkeiten    | Bei 30k keys/s |
-| -------------- | ----------------- | -------------- |
-| 4 Zeichen      | 65.536            | ~2 Sekunden    |
-| 5 Zeichen      | 1.048.576         | ~35 Sekunden   |
-| 6 Zeichen      | 16.777.216        | ~9 Minuten     |
-| 7 Zeichen      | 268.435.456       | ~2,5 Stunden   |
-| 8 Zeichen      | 4.294.967.296     | ~1,7 Tage      |
-| 9 Zeichen      | 68.719.476.736    | ~26 Tage       |
-| 10 Zeichen     | 1.099.511.627.776 | ~1,2 Jahre     |
+| Prefix Length | Possibilities     | At 30k keys/s |
+| ------------- | ----------------- | ------------- |
+| 4 characters  | 65,536            | ~2 seconds    |
+| 5 characters  | 1,048,576         | ~35 seconds   |
+| 6 characters  | 16,777,216        | ~9 minutes    |
+| 7 characters  | 268,435,456       | ~2.5 hours    |
+| 8 characters  | 4,294,967,296     | ~1.7 days     |
+| 9 characters  | 68,719,476,736    | ~26 days      |
+| 10 characters | 1,099,511,627,776 | ~1.2 years    |
 
-## Technische Details
+## Technical Details
 
-### Architektur
+### Architecture
 
-- **Multiprocessing** - Ein Worker-Prozess pro CPU-Kern
-- **Worker-Management** - CPU-Limitierung durch selektives Pausieren von Workern
-- **Shared Memory** - Gemeinsame Zähler für alle Worker
-- **Queue-basierte Kommunikation** - Worker zu Display-Prozess
-- **Event-basierte Steuerung** - Synchronisierte Pause und CPU-Limitierung über alle Worker
+- **Multiprocessing** - One worker process per CPU core
+- **Worker Management** - CPU limiting through selective pausing of workers
+- **Shared Memory** - Shared counters for all workers
+- **Queue-Based Communication** - Worker to display process
+- **Event-Based Control** - Synchronized pause and CPU limiting across all workers
 
-### Dateien
+### Files
 
-- `key_searcher.py` - Hauptscript
-- `searchFor.txt` - Standard Pattern-Datei
-- `.total_stats.json` - Persistente All-Time-Statistiken
-- `found_keys/` - Ausgabeverzeichnis
+- `key_searcher.py` - Main script
+- `searchFor.txt` - Default pattern file
+- `.total_stats.json` - Persistent all-time statistics
+- `found_keys/` - Output directory
 
-### Abhängigkeiten
+### Dependencies
 
-- `cryptography` - Ed25519 Schlüsselgenerierung
-- `rich` - Terminal-UI Framework
-- `psutil` - CPU-Auslastung
+- `cryptography` - Ed25519 key generation
+- `rich` - Terminal UI framework
+- `psutil` - CPU usage monitoring
 
-## Lizenz
+## License
 
 MIT License
 
-## Beitragen
+## Contributing
 
-Pull Requests sind willkommen! Für größere Änderungen bitte erst ein Issue erstellen.
+Pull requests are welcome! For major changes, please open an issue first.
 
 ---
 
-Viel Erfolg bei der Suche nach dem perfekten Key!
+Good luck finding the perfect key!
