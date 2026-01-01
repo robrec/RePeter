@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Ed25519 Public Key Pattern Searcher
-Searches for ed25519 Public Keys with special patterns at the start (Base58)
+Searches for ed25519 Public Keys with special patterns at the start (HEX)
 Utilizes all available CPU cores for maximum performance
 """
 
@@ -16,10 +16,9 @@ import hashlib
 try:
     from cryptography.hazmat.primitives.asymmetric import ed25519
     from cryptography.hazmat.primitives import serialization
-    import base58
 except ImportError as e:
     print(f"ERROR: Required library not installed: {e}")
-    print("Please install with: pip install cryptography base58")
+    print("Please install with: pip install cryptography")
     exit(1)
 
 
@@ -60,20 +59,27 @@ class KeySearcher:
         
         try:
             while True:
-                # Generiere neuen ed25519 Key
+                # Generate new ed25519 key
                 private_key = ed25519.Ed25519PrivateKey.generate()
                 public_key = private_key.public_key()
                 
-                # Konvertiere Public Key zu Bytes und dann zu Base58
+                # Convert Public Key to bytes and then to HEX
                 public_bytes = public_key.public_bytes(
                     encoding=serialization.Encoding.Raw,
                     format=serialization.PublicFormat.Raw
                 )
-                public_base58 = base58.b58encode(public_bytes).decode('ascii')
+                public_hex = public_bytes.hex().upper()
+                
+                # Get private key bytes (32 bytes seed)
+                private_bytes = private_key.private_bytes(
+                    encoding=serialization.Encoding.Raw,
+                    format=serialization.PrivateFormat.Raw,
+                    encryption_algorithm=serialization.NoEncryption()
+                )
                 
                 # Check all patterns
                 for pattern in self.patterns:
-                    if public_base58.startswith(pattern):
+                    if public_hex.startswith(pattern.upper()):
                         # Check if short pattern (<=max_pattern_length) already found
                         if len(pattern) <= max_pattern_length:
                             if pattern in found_patterns_dict:
@@ -86,12 +92,12 @@ class KeySearcher:
                                 session_found_list.append(pattern)
                         
                         # Match found!
-                        self.save_key(private_key, public_key, public_base58, pattern)
+                        self.save_key(private_bytes, public_bytes, public_hex, pattern)
                         local_found += 1
                         with shared_found.get_lock():
                             shared_found.value += 1
                         print(f"\n🎉 Worker {worker_id}: MATCH found! Pattern: {pattern}")
-                        print(f"   Public Key: {public_base58[:32]}...")
+                        print(f"   Public Key (HEX): {public_hex[:32]}...")
                         break
                 
                 local_checked += 1
@@ -118,37 +124,30 @@ class KeySearcher:
             print(f"\nWorker {worker_id} stopping...")
             return
     
-    def save_key(self, private_key, public_key, public_base58: str, pattern: str) -> None:
-        """Saves found key to a file"""
+    def save_key(self, private_bytes: bytes, public_bytes: bytes, public_hex: str, pattern: str) -> None:
+        """Saves found key to a file in HEX format (MeshCore compatible)"""
         epoch = int(datetime.now().timestamp())
         filename = f"{epoch}_{pattern}.txt"
         filepath = self.output_dir / filename
         
-        # Convert keys to PEM format
-        private_pem = private_key.private_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PrivateFormat.PKCS8,
-            encryption_algorithm=serialization.NoEncryption()
-        ).decode('utf-8')
-        
-        public_pem = public_key.public_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PublicFormat.SubjectPublicKeyInfo
-        ).decode('utf-8')
+        # Convert to HEX format like MeshCore:
+        # Private key: 64 bytes (32 bytes seed + 32 bytes public key) = 128 hex chars
+        # Public key: 32 bytes = 64 hex chars
+        private_hex = (private_bytes + public_bytes).hex().upper()
         
         # Save to file
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write(f"Pattern Match: {pattern}\n")
             f.write(f"Timestamp: {datetime.now().isoformat()}\n")
-            f.write(f"Public Key (Base58): {public_base58}\n")
+            f.write(f"Public Key (HEX): {public_hex}\n")
+            f.write(f"Private Key (HEX): {private_hex}\n")
             f.write(f"\n{'='*70}\n")
-            f.write(f"PRIVATE KEY (KEEP SECURE!):\n")
+            f.write(f"MeshCore Import Format:\n")
             f.write(f"{'='*70}\n\n")
-            f.write(private_pem)
-            f.write(f"\n{'='*70}\n")
-            f.write(f"PUBLIC KEY:\n")
-            f.write(f"{'='*70}\n\n")
-            f.write(public_pem)
+            f.write('{\n')
+            f.write(f'  "public_key": "{public_hex}",\n')
+            f.write(f'  "private_key": "{private_hex}"\n')
+            f.write('}\n')
         
         print(f"   Saved: {filepath.name}")
     
@@ -182,7 +181,7 @@ class KeySearcher:
         existing_patterns = self.load_existing_patterns()
         
         print(f"\n{'='*70}")
-        print(f"Ed25519 Public Key Pattern Searcher (Base58)")
+        print(f"Ed25519 Public Key Pattern Searcher (HEX)")
         print(f"{'='*70}")
         print(f"CPU Cores: {num_workers}")
         print(f"Patterns: {len(self.patterns)}")
