@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Ed25519 Public Key Pattern Searcher
-Sucht nach ed25519 Public Keys mit speziellen Patterns am Anfang (Base58)
-Nutzt alle verfügbaren CPU-Kerne für maximale Performance
+Searches for ed25519 Public Keys with special patterns at the start (Base58)
+Utilizes all available CPU cores for maximum performance
 """
 
 import os
@@ -18,8 +18,8 @@ try:
     from cryptography.hazmat.primitives import serialization
     import base58
 except ImportError as e:
-    print(f"FEHLER: Benötigte Library nicht installiert: {e}")
-    print("Bitte installieren mit: pip install cryptography base58")
+    print(f"ERROR: Required library not installed: {e}")
+    print("Please install with: pip install cryptography base58")
     exit(1)
 
 
@@ -30,30 +30,30 @@ class KeySearcher:
         self.output_dir.mkdir(exist_ok=True)
         self.max_pattern_length = max_pattern_length
         
-        print(f"Geladene Patterns: {len(self.patterns)}")
-        print(f"Ausgabeordner: {self.output_dir.absolute()}")
-        print(f"Max. Pattern-Länge für Duplikat-Vermeidung: {self.max_pattern_length}")
+        print(f"Loaded Patterns: {len(self.patterns)}")
+        print(f"Output Directory: {self.output_dir.absolute()}")
+        print(f"Max Pattern Length for Duplicate Prevention: {self.max_pattern_length}")
     
     def load_patterns(self, filename: str) -> Set[str]:
-        """Lädt die Patterns aus der Datei"""
+        """Loads patterns from file"""
         patterns = set()
         try:
             with open(filename, 'r', encoding='utf-8') as f:
                 for line in f:
                     line = line.strip()
-                    # Ignoriere leere Zeilen und Kommentare
+                    # Ignore empty lines and comments
                     if line and not line.startswith('#'):
                         patterns.add(line)
         except FileNotFoundError:
-            print(f"FEHLER: {filename} nicht gefunden!")
+            print(f"ERROR: {filename} not found!")
             exit(1)
         
         return patterns
     
-    def generate_and_check_key(self, worker_id: int, check_count: int, shared_counter, shared_found, found_patterns_dict, max_pattern_length: int, session_found_list) -> None:
+    def generate_and_check_key(self, worker_id: int, check_count: int, shared_counter, shared_found, found_patterns_dict, max_pattern_length: int, session_found_list, start_time) -> None:
         """
-        Generiert Keys und prüft sie gegen die Patterns
-        Läuft in einem separaten Prozess
+        Generates keys and checks them against patterns
+        Runs in a separate process
         """
         local_checked = 0
         local_found = 0
@@ -71,57 +71,60 @@ class KeySearcher:
                 )
                 public_base58 = base58.b58encode(public_bytes).decode('ascii')
                 
-                # Prüfe alle Patterns
+                # Check all patterns
                 for pattern in self.patterns:
                     if public_base58.startswith(pattern):
-                        # Prüfe ob kurzes Pattern (<=max_pattern_length) bereits gefunden wurde
+                        # Check if short pattern (<=max_pattern_length) already found
                         if len(pattern) <= max_pattern_length:
                             if pattern in found_patterns_dict:
-                                # Bereits gefunden, überspringe
+                                # Already found, skip
                                 continue
                             else:
-                                # Markiere als gefunden
+                                # Mark as found
                                 found_patterns_dict[pattern] = True
-                                # Füge zur Session-Liste hinzu
+                                # Add to session list
                                 session_found_list.append(pattern)
                         
-                        # Match gefunden!
+                        # Match found!
                         self.save_key(private_key, public_key, public_base58, pattern)
                         local_found += 1
                         with shared_found.get_lock():
                             shared_found.value += 1
-                        print(f"\n🎉 Worker {worker_id}: MATCH gefunden! Pattern: {pattern}")
+                        print(f"\n🎉 Worker {worker_id}: MATCH found! Pattern: {pattern}")
                         print(f"   Public Key: {public_base58[:32]}...")
                         break
                 
                 local_checked += 1
                 
-                # Update globalen Counter alle 1000 Keys
+                # Update global counter every 1000 keys
                 if local_checked % 1000 == 0:
                     with shared_counter.get_lock():
                         shared_counter.value += 1000
                 
-                # Progress Update alle 10000 Keys
+                # Progress update every 10000 keys
                 if local_checked % 10000 == 0:
                     total = shared_counter.value
                     found = shared_found.value
-                    # Zeige gefundene Patterns dieser Session
+                    # Calculate keys per second
+                    elapsed = datetime.now().timestamp() - start_time
+                    keys_per_sec = int(total / elapsed) if elapsed > 0 else 0
+                    # Show patterns found in this session
                     session_patterns = list(session_found_list)
-                    patterns_str = ', '.join(sorted(session_patterns)) if session_patterns else 'keine'
-                    print(f"Worker {worker_id}: {local_checked:,} Keys geprüft | "
-                          f"Total: {total:,} | Gefunden: {found} | Session: [{patterns_str}]")
+                    patterns_str = ', '.join(sorted(session_patterns)) if session_patterns else 'none'
+                    print(f"Worker {worker_id}: {local_checked:,} Keys checked | "
+                          f"Total: {total:,} | Found: {found} | {keys_per_sec:,} keys/sec | Session: [{patterns_str}]")
         
         except KeyboardInterrupt:
-            print(f"\nWorker {worker_id} wird beendet...")
+            print(f"\nWorker {worker_id} stopping...")
             return
     
     def save_key(self, private_key, public_key, public_base58: str, pattern: str) -> None:
-        """Speichert gefundenen Key in einer Datei"""
+        """Saves found key to a file"""
         epoch = int(datetime.now().timestamp())
         filename = f"{epoch}_{pattern}.txt"
         filepath = self.output_dir / filename
         
-        # Konvertiere Keys zu PEM Format
+        # Convert keys to PEM format
         private_pem = private_key.private_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PrivateFormat.PKCS8,
@@ -133,13 +136,13 @@ class KeySearcher:
             format=serialization.PublicFormat.SubjectPublicKeyInfo
         ).decode('utf-8')
         
-        # Speichere in Datei
+        # Save to file
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write(f"Pattern Match: {pattern}\n")
             f.write(f"Timestamp: {datetime.now().isoformat()}\n")
             f.write(f"Public Key (Base58): {public_base58}\n")
             f.write(f"\n{'='*70}\n")
-            f.write(f"PRIVATE KEY (SICHER AUFBEWAHREN!):\n")
+            f.write(f"PRIVATE KEY (KEEP SECURE!):\n")
             f.write(f"{'='*70}\n\n")
             f.write(private_pem)
             f.write(f"\n{'='*70}\n")
@@ -147,22 +150,22 @@ class KeySearcher:
             f.write(f"{'='*70}\n\n")
             f.write(public_pem)
         
-        print(f"   Gespeichert: {filepath.name}")
+        print(f"   Saved: {filepath.name}")
     
     def load_existing_patterns(self) -> Set[str]:
-        """Lädt bereits gefundene Patterns aus vorhandenen Dateien im found_keys Ordner"""
+        """Loads already found patterns from existing files in found_keys folder"""
         existing_patterns = set()
         
         if not self.output_dir.exists():
             return existing_patterns
         
         for file in self.output_dir.glob("*.txt"):
-            # Extrahiere Pattern aus Dateinamen (Format: epoch_PATTERN.txt)
+            # Extract pattern from filename (Format: epoch_PATTERN.txt)
             parts = file.stem.split('_', 1)
             if len(parts) >= 2:
-                pattern = parts[1]  # Pattern ist nach dem Epoch-Timestamp
+                pattern = parts[1]  # Pattern is after the epoch timestamp
                 
-                # Nur Patterns bis max_pattern_length berücksichtigen
+                # Only consider patterns up to max_pattern_length
                 if len(pattern) <= self.max_pattern_length:
                     existing_patterns.add(pattern)
         
@@ -170,93 +173,100 @@ class KeySearcher:
     
     def run(self, num_workers: int = None) -> None:
         """
-        Startet die Key-Suche mit mehreren Prozessen
+        Starts the key search with multiple processes
         """
         if num_workers is None:
             num_workers = mp.cpu_count()
         
-        # Lade bereits gefundene Patterns
+        # Load already found patterns
         existing_patterns = self.load_existing_patterns()
         
         print(f"\n{'='*70}")
         print(f"Ed25519 Public Key Pattern Searcher (Base58)")
         print(f"{'='*70}")
-        print(f"CPU Kerne: {num_workers}")
+        print(f"CPU Cores: {num_workers}")
         print(f"Patterns: {len(self.patterns)}")
-        print(f"Bereits gefunden (werden übersprungen): {len(existing_patterns)}")
+        print(f"Already found (will be skipped): {len(existing_patterns)}")
         if existing_patterns:
             print(f"  -> {', '.join(sorted(existing_patterns))}")
-        print(f"Hinweis: Patterns bis {self.max_pattern_length} Zeichen werden nur 1x gespeichert")
-        print(f"\nStarte Suche... (Strg+C zum Beenden)\n")
+        print(f"Note: Patterns up to {self.max_pattern_length} characters will only be saved once")
+        print(f"\nStarting search... (Ctrl+C to stop)\n")
         
-        # Shared Counter für Statistiken
+        # Shared counter for statistics
         shared_counter = mp.Value('i', 0)
         shared_found = mp.Value('i', 0)
         
-        # Shared dict für bereits gefundene kurze Patterns
+        # Shared dict for already found short patterns
         manager = mp.Manager()
         found_patterns_dict = manager.dict()
         
-        # Shared list für in dieser Session gefundene Patterns
+        # Shared list for patterns found in this session
         session_found_list = manager.list()
         
-        # Initialisiere mit bereits vorhandenen Patterns
+        # Initialize with already existing patterns
         for pattern in existing_patterns:
             found_patterns_dict[pattern] = True
         
-        # Starte Worker Prozesse
+        # Record start time for keys/sec calculation
+        start_time = datetime.now().timestamp()
+        
+        # Start worker processes
         processes = []
         try:
             for i in range(num_workers):
                 p = mp.Process(
                     target=self.generate_and_check_key,
-                    args=(i, 0, shared_counter, shared_found, found_patterns_dict, self.max_pattern_length, session_found_list)
+                    args=(i, 0, shared_counter, shared_found, found_patterns_dict, self.max_pattern_length, session_found_list, start_time)
                 )
                 p.start()
                 processes.append(p)
             
-            # Warte auf alle Prozesse
+            # Wait for all processes
             for p in processes:
                 p.join()
         
         except KeyboardInterrupt:
-            print("\n\nBeende alle Worker...")
+            print("\n\nStopping all workers...")
             for p in processes:
                 p.terminate()
                 p.join()
             
+            elapsed = datetime.now().timestamp() - start_time
+            keys_per_sec = int(shared_counter.value / elapsed) if elapsed > 0 else 0
+            
             print(f"\n{'='*70}")
             if session_found_list:
-                print(f"Gefundene Patterns in dieser Session: {', '.join(sorted(session_found_list))}")
-            print(f"Suche beendet!")
-            print(f"Geprüfte Keys: {shared_counter.value:,}")
-            print(f"Gefundene Matches: {shared_found.value}")
+                print(f"Patterns found in this session: {', '.join(sorted(session_found_list))}")
+            print(f"Search stopped!")
+            print(f"Keys checked: {shared_counter.value:,}")
+            print(f"Matches found: {shared_found.value}")
+            print(f"Average speed: {keys_per_sec:,} keys/sec")
             print(f"{'='*70}\n")
 
 
 def main():
-    """Hauptfunktion"""
+    """Main function"""
     parser = argparse.ArgumentParser(
-        description='Ed25519 Public Key Pattern Searcher für MeshCore',
+        description='Ed25519 Public Key Pattern Searcher for MeshCore',
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument(
         '--max-pattern-length',
         type=int,
         default=int(os.getenv('MAX_PATTERN_LENGTH', '7')),
-        help='Maximale Pattern-Länge für Duplikat-Vermeidung (Standard: 7, kann auch via MAX_PATTERN_LENGTH ENV gesetzt werden)'
+        help='Maximum pattern length for duplicate prevention (Default: 7, can also be set via MAX_PATTERN_LENGTH ENV)'
     )
     parser.add_argument(
         '--patterns-file',
         type=str,
         default='searchFor.txt',
-        help='Pfad zur Pattern-Datei (Standard: searchFor.txt)'
+        help='Path to pattern file (Default: searchFor.txt)'
     )
     parser.add_argument(
         '--output-dir',
         type=str,
         default='found_keys',
-        help='Ausgabe-Verzeichnis für gefundene Keys (Standard: found_keys)'
+        help='Output directory for found keys (Default: found_keys)'
     )
     
     args = parser.parse_args()
@@ -267,7 +277,7 @@ def main():
         max_pattern_length=args.max_pattern_length
     )
     
-    # Nutze alle verfügbaren CPU-Kerne
+    # Use all available CPU cores
     searcher.run()
 
 

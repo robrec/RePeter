@@ -1,55 +1,55 @@
-# Docker Setup für PubKeySearcher
+# Docker Setup for PubKeySearcher
 
-Dieses Dokument beschreibt, wie du den Ed25519 PubKeySearcher mit Docker verwendest.
+This document describes how to use the Ed25519 PubKeySearcher with Docker.
 
-## Voraussetzungen
+## Prerequisites
 
-- Docker installiert ([Docker Desktop](https://www.docker.com/products/docker-desktop) für Windows/Mac oder Docker Engine für Linux)
-- Docker Compose (normalerweise mit Docker Desktop enthalten)
+- Docker installed ([Docker Desktop](https://www.docker.com/products/docker-desktop) for Windows/Mac or Docker Engine for Linux)
+- Docker Compose (usually included with Docker Desktop)
 
 ## Quick Start
 
-### 1. Docker Image bauen
+### 1. Build Docker Image
 
 ```bash
 docker-compose build
 ```
 
-### 2. Container starten
+### 2. Start Container
 
 ```bash
 docker-compose up
 ```
 
-oder im Hintergrund:
+or in background:
 
 ```bash
 docker-compose up -d
 ```
 
-### 3. Logs ansehen (bei Hintergrund-Ausführung)
+### 3. View Logs (when running in background)
 
 ```bash
 docker-compose logs -f
 ```
 
-### 4. Container stoppen
+### 4. Stop Container
 
 ```bash
 docker-compose down
 ```
 
-oder mit `Strg+C` wenn im Vordergrund.
+or with `Ctrl+C` when running in foreground.
 
-## Manuelle Docker Befehle (ohne docker-compose)
+## Manual Docker Commands (without docker-compose)
 
-### Image bauen
+### Build Image
 
 ```bash
 docker build -t pubkey-searcher .
 ```
 
-### Container ausführen
+### Run Container
 
 ```bash
 docker run -it --rm \
@@ -66,104 +66,104 @@ docker run -it --rm `
   pubkey-searcher
 ```
 
-## Konfiguration anpassen
+## Adjust Configuration
 
-### Patterns ändern
+### Change Patterns
 
-Bearbeite `searchFor.txt` im Host-System. Die Änderungen werden automatisch übernommen (bei aktivem Volume-Mount).
+Edit `searchFor.txt` on the host system. Changes are automatically applied (with active volume mount).
 
-### CPU-Limitierung
+### CPU Limitation
 
-Bearbeite `docker-compose.yml` und passe den `cpus` Wert an:
+Edit `docker-compose.yml` and adjust the `cpus` value:
 
 ```yaml
-cpus: "4.0"  # Begrenzt auf 4 CPU-Kerne
+cpus: "4.0"  # Limit to 4 CPU cores
 ```
 
-### Memory-Limitierung
+### Memory Limitation
 
-Füge in `docker-compose.yml` hinzu:
+Add to `docker-compose.yml`:
 
 ```yaml
-mem_limit: 2g  # Begrenzt auf 2GB RAM
+mem_limit: 2g  # Limit to 2GB RAM
 ```
 
 ## Volumes
 
-Das Docker Setup nutzt zwei Volumes:
+The Docker setup uses two volumes:
 
-1. **`./found_keys`** - Persistente Speicherung der gefundenen Keys
-2. **`./searchFor.txt`** - Pattern-Liste (read-only)
+1. **`./found_keys`** - Persistent storage for found keys
+2. **`./searchFor.txt`** - Pattern list (read-only)
 
-Alle gefundenen Keys werden direkt auf dem Host-System gespeichert.
+All found keys are saved directly on the host system.
 
 ## Performance
 
-Der Docker Container nutzt standardmäßig alle verfügbaren CPU-Kerne. Performance sollte vergleichbar mit nativer Ausführung sein.
+The Docker container uses all available CPU cores by default. Performance should be comparable to native execution.
 
-**Tipp für maximale Performance:**
-- Stelle sicher, dass Docker Desktop genügend CPU-Kerne und RAM zugewiesen hat (Einstellungen → Resources)
-- Empfohlen: Alle CPU-Kerne und mindestens 2GB RAM
+**Tip for maximum performance:**
+- Ensure Docker Desktop has enough CPU cores and RAM allocated (Settings → Resources)
+- Recommended: All CPU cores and at least 2GB RAM
 
 ## Troubleshooting
 
-### Container startet nicht
+### Container won't start
 
 ```bash
-# Logs prüfen
+# Check logs
 docker-compose logs
 
-# Container-Status prüfen
+# Check container status
 docker-compose ps
 ```
 
-### Keine Keys werden gefunden
+### No keys are found
 
-Das ist normal und hängt von den Patterns ab. Prüfe die Logs für Progress-Updates.
+This is normal and depends on the patterns. Check the logs for progress updates.
 
-### Volume-Probleme unter Windows
+### Volume Problems on Windows
 
-Stelle sicher, dass:
-- Docker Desktop die Berechtigung hat, auf das Verzeichnis zuzugreifen
-- Der Pfad korrekt in den Docker-Einstellungen freigegeben ist (File Sharing)
+Make sure that:
+- Docker Desktop has permission to access the directory
+- The path is correctly shared in Docker settings (File Sharing)
 
 ### Permission Errors
 
-Unter Linux kann es zu Permission-Problemen kommen:
+On Linux, permission problems may occur:
 
 ```bash
-# Berechtigungen anpassen
+# Adjust permissions
 chmod -R 777 found_keys/
 ```
 
 ## Best Practices
 
-1. **Regelmäßige Backups**: Sichere den `found_keys/` Ordner regelmäßig
-2. **Pattern-Optimierung**: Nutze realistische Pattern-Längen (4-6 Zeichen)
-3. **Monitoring**: Prüfe regelmäßig die Logs für gefundene Keys
-4. **Ressourcen**: Lasse den Container auf einem dedizierten System laufen für beste Performance
+1. **Regular Backups**: Backup the `found_keys/` folder regularly
+2. **Pattern Optimization**: Use realistic pattern lengths (4-6 characters)
+3. **Monitoring**: Check the logs regularly for found keys
+4. **Resources**: Run the container on a dedicated system for best performance
 
-## Container im Hintergrund laufen lassen
+## Running Container in Background
 
-Für Langzeit-Suche:
+For long-term search:
 
 ```bash
-# Starten mit automatischem Neustart
+# Start with automatic restart
 docker-compose up -d --restart unless-stopped
 
-# Status prüfen
+# Check status
 docker-compose ps
 
-# Logs live ansehen
+# View logs live
 docker-compose logs -f
 
-# Stoppen
+# Stop
 docker-compose stop
 ```
 
 ## Multi-Container Setup (Optional)
 
-Für parallele Suche mit unterschiedlichen Pattern-Listen:
+For parallel search with different pattern lists:
 
 ```yaml
 version: '3.8'
@@ -184,16 +184,16 @@ services:
     cpus: "2.0"
 ```
 
-## Sicherheit
+## Security
 
-- ⚠️ **Private Keys**: Der `found_keys/` Ordner enthält Private Keys! Sichere Aufbewahrung!
-- 🔒 **Backups verschlüsseln**: Nutze verschlüsselte Backups für gefundene Keys
-- 🚫 **Nicht exposen**: Exponiere den Container nicht unnötig im Netzwerk
+- ⚠️ **Private Keys**: The `found_keys/` folder contains Private Keys! Store securely!
+- 🔒 **Encrypt Backups**: Use encrypted backups for found keys
+- 🚫 **Don't Expose**: Don't unnecessarily expose the container on the network
 
 ## Support
 
-Bei Problemen prüfe:
-1. Docker-Version: `docker --version`
-2. Docker Compose-Version: `docker-compose --version`
+If you have problems, check:
+1. Docker version: `docker --version`
+2. Docker Compose version: `docker-compose --version`
 3. Logs: `docker-compose logs`
-4. System-Ressourcen in Docker Desktop Einstellungen
+4. System resources in Docker Desktop settings
