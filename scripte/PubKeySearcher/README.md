@@ -4,6 +4,18 @@ Ein hochperformantes Python-Script zur Generierung von Ed25519-Schlüsselpaaren 
 
 Perfekt für einprägsame Keys für **MeshCore** Repeater!
 
+## Empfehlung für einfache Keys
+
+**Für einfache, einzelne Keys empfehle ich:** [https://gessaman.com/mc-keygen/](https://gessaman.com/mc-keygen/)
+
+Diese Website ist perfekt für schnelle, unkomplizierte Key-Generierung und ich lege sie jedem ans Herz. Tatsächlich war diese Seite meine Inspiration für dieses Tool - ich wollte eine Möglichkeit schaffen, **mehrere komplexere Keys gleichzeitig zu suchen**, um Ressourcen zu schonen und Zeit zu sparen, wenn man mehrere Repeater mit benutzerdefinierten Patterns konfigurieren möchte.
+
+**Verwenden Sie dieses Tool, wenn:**
+- Sie mehrere Keys mit unterschiedlichen Patterns gleichzeitig suchen möchten
+- Sie komplexere/längere Patterns (7+ Zeichen) benötigen
+- Sie eine Pattern-Liste haben und alle Keys in einem Durchgang generieren möchten
+- Sie die volle CPU-Power Ihres Systems nutzen möchten
+
 ![Interface](interface.png)
 
 ## Features
@@ -230,6 +242,72 @@ MeshCore Import Format:
   "private_key": "ABCDEF1234567890..."
 }
 ```
+
+Die generierten Key-Dateien enthalten zusätzlich detaillierte Konfigurationsanweisungen für Ihren Repeater.
+
+## Keys auf dem Repeater konfigurieren
+
+Nach der erfolgreichen Generierung eines Keys mit Ihrem gewünschten Pattern müssen Sie diesen auf Ihrem MeshCore Repeater konfigurieren.
+
+### Methode: USB Serial Console (Empfohlen)
+
+Dies ist die schnellste Methode, wenn Sie Ihren Repeater direkt mit einem Computer verbinden können:
+
+#### Schritt 1: USB-Verbindung herstellen
+
+Verbinden Sie Ihren Repeater über USB mit Ihrem Computer.
+
+#### Schritt 2: Console öffnen
+
+Öffnen Sie die MeshCore Web Console oder verwenden Sie eine beliebige Terminal-Anwendung:
+
+- **Web Console**: Besuchen Sie [flasher.meshcore.co.uk](https://flasher.meshcore.co.uk)
+- **Terminal**: Verwenden Sie PuTTY, screen, oder ein anderes Serial-Terminal-Programm
+
+#### Schritt 3: Private Key setzen
+
+Führen Sie folgenden Befehl in der Console aus:
+
+```
+set prv.key <IHR_128_ZEICHEN_PRIVATE_KEY>
+```
+
+Ersetzen Sie `<IHR_128_ZEICHEN_PRIVATE_KEY>` mit dem vollständigen 128-Zeichen Private Key aus Ihrer generierten Key-Datei.
+
+**Wichtig:** Verwenden Sie den kompletten 128-Zeichen Private Key. Der Befehl ändert den Private Key des Geräts sofort.
+
+#### Schritt 4: Änderung verifizieren
+
+Überprüfen Sie die Änderung, indem Sie den Public Key in den Geräteeinstellungen kontrollieren:
+
+- Die ersten Zeichen sollten Ihrem gewünschten Pattern entsprechen
+- Der vollständige Public Key sollte mit dem generierten Key übereinstimmen
+
+### Vorteile der Serial Console Methode
+
+- Keine Companion-Firmware erforderlich
+- Änderung erfolgt sofort ohne Firmware-Wechsel
+- Schnell und unkompliziert bei Console-Erfahrung
+- Funktioniert mit MeshCore Web Console oder jedem Terminal-Programm
+
+### Troubleshooting
+
+**Häufige Probleme:**
+
+- **Key wird nicht angezeigt**: Stellen Sie sicher, dass Sie die Änderung gespeichert haben
+- **Falsches Key-Format**: Verwenden Sie den kompletten 128-Zeichen Private Key
+- **App erkennt Gerät nicht**: USB-Kabel ab- und wieder anstecken
+- **Firmware-Flash schlägt fehl**: Anderes USB-Kabel oder USB-Port versuchen
+- **Key-Import schlägt fehl**: Key-Generierung überprüfen und erneut versuchen
+
+**Verifizierungsschritte:**
+
+1. Prüfen Sie, dass der angezeigte Public Key mit Ihrem generierten Key übereinstimmt
+2. Verifizieren Sie, dass die ersten Zeichen Ihrem gewünschten Pattern entsprechen
+3. Testen Sie die Verbindung, um sicherzustellen, dass das Gerät funktioniert
+4. Überprüfen Sie im MeshCore-Netzwerk, ob Ihr Gerät mit der neuen Kennung sichtbar ist
+
+**Pro-Tipp:** Bewahren Sie eine Sicherungskopie Ihres Private Keys an einem sicheren Ort auf. Sie benötigen ihn, falls Sie Ihre Gerätekonfiguration wiederherstellen müssen.
 
 ## Zeitschätzungen
 
