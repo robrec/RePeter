@@ -39,13 +39,16 @@ Perfekt für einprägsame Keys für **MeshCore** Repeater!
 - **Zeitschätzungen** - Berechnete Wahrscheinlichkeiten mit Fortschritt (gefunden/gesucht)
 - **Remaining Counter** - Zeigt verbleibende Patterns insgesamt und pro Kategorie
 - **Next Key ETA** - Mathematische Schätzung bis zum nächsten Fund mit dynamischem Progressbar
+- **Per-Length ETAs** - Einzelne ETA-Timer pro Pattern-Länge (5-10, 11+ in Rot)
+- **Session Progress** - Zeigt gefundene vs. erwartete Keys (z.B. `1 / 1.4`)
 - **Verbose Mode** - Zeigt die ETA-Berechnungsformel mit `-v` Flag
 
 ### Verwaltung
 
 - **Pattern-Datei** - Externe Musterliste für einfache Anpassung
-- **Duplikat-Erkennung** - Verhindert doppelte Funde für kurze Patterns (≤7 Zeichen)
-- **Mehrfach-Funde** - Patterns >7 Zeichen können beliebig oft gefunden werden
+- **Hot-Reload** - Pattern-Datei wird alle 30 Sekunden neu geladen (neue Patterns werden automatisch hinzugefügt)
+- **Duplikat-Erkennung** - Verhindert doppelte Funde für kurze Patterns (konfigurierbar via `--max-pattern-length`)
+- **No Dup Cap** - Patterns oberhalb der max-pattern-length können beliebig oft gefunden werden
 - **Persistente Speicherung** - Gefundene Keys werden sofort gespeichert
 - **JSON-Export** - MeshCore-kompatibles Import-Format
 
@@ -166,25 +169,36 @@ BREMESH
 
 Das Interface besteht aus drei separaten Panels:
 
-1. **Hauptstatistiken (blauer Rahmen)** - Config, Patterns, Status, Session/All-Time Stats, Time Estimates
-2. **ETA Progressbar (magenta Rahmen)** - Expected/Elapsed Zeit mit dynamischem Fortschrittsbalken
-3. **Found Keys (grüner Rahmen)** - Gefundene Keys mit vollständigem 64-Zeichen Public Key
+1. **Hauptstatistiken (blauer Rahmen)** - Config, Patterns, No Dup Cap, Status, Session/All-Time Stats, Time Estimates
+2. **ETA Progressbar (magenta Rahmen)** - Expected/Elapsed Zeit, Session Progress, Per-Length ETAs, Fortschrittsbalken
+3. **Found Keys (gruener Rahmen)** - Gefundene Keys mit vollstaendigem 64-Zeichen Public Key
 
 ![Interface](interface.png)
 
 **Legende:**
-- **Time Estimates:** `Zeitschätzung (gefunden/gesucht)` pro Längen-Kategorie
-- **Next Key ETA:** Mathematisch erwartete Zeit bis zum nächsten Fund basierend auf kombinierter Wahrscheinlichkeit:
+
+- **No Dup Cap:** Zeigt ab welcher Pattern-Laenge Mehrfach-Funde erlaubt sind
+- **Time Estimates:** `Zeitschaetzung (gefunden/gesucht)` pro Laengen-Kategorie
+- **Session:** Zeigt `gefunden / erwartet` Keys in der aktuellen Session
+- **Per-Length ETAs:** Einzelne ETA-Timer fuer jede Pattern-Laenge in Rarity-Farben:
+  - Grau: 5 Zeichen oder weniger
+  - Weiss: 6 Zeichen
+  - Gruen: 7 Zeichen
+  - Blau: 8 Zeichen
+  - Lila: 9 Zeichen
+  - Orange: 10 Zeichen
+  - Rot: 11+ Zeichen
+- **Next Key ETA:** Mathematisch erwartete Zeit bis zum naechsten Fund basierend auf kombinierter Wahrscheinlichkeit:
   ```
-  ETA = 1 / ((n1/16^L1 + n2/16^L2 + ...) × keys_per_sec)
+  ETA = 1 / ((n1/16^L1 + n2/16^L2 + ...) x keys_per_sec)
   ```
-- **Progressbar:** Zeigt verstrichene Zeit im Verhältnis zur erwarteten Zeit
+- **Progressbar:** Zeigt verstrichene Zeit im Verhaeltnis zur erwarteten Zeit
   - Cyan (<50%): unterwegs
   - Gelb (50-100%): bald erwartet
-  - Grün (>100% oder negativ): überfällig oder früher Fund
+  - Gruen (>100% oder negativ): ueberfaellig oder frueher Fund
 - **Credits System:** Bei jedem gefundenen Key wird der Fortschritt um 100% reduziert
-  - Progress kann negativ werden (Key früher als erwartet gefunden)
-  - Progress >100% bedeutet überfällig
+  - Progress kann negativ werden (Key frueher als erwartet gefunden)
+  - Progress >100% bedeutet ueberfaellig
 
 ## Ausgabe-Format
 

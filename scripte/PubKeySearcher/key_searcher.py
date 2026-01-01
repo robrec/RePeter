@@ -34,6 +34,7 @@ class KeySearcher:
     def __init__(self, patterns_file: str = "searchFor.txt", output_dir: str = "found_keys", max_pattern_length: int = 7, single_pattern: str = None, verbose: bool = False):
         self.single_pattern_mode = single_pattern is not None
         self.verbose = verbose
+        self.patterns_file = patterns_file  # Store for hot-reload
         if single_pattern:
             self.patterns = {single_pattern.upper()}
             print(f"Searching for single pattern: {single_pattern.upper()}")
@@ -134,7 +135,6 @@ class KeySearcher:
         # Track remaining pattern lengths for ETA calculation
         remaining_lengths = list(startup_info['remaining_pattern_lengths'])
         last_find_time = start_time  # Time of last found key (or start)
-        found_credits = 0.0  # Each found key adds 1.0 (100%) credit
         
         def build_panel():
             """Build the combined stats panel"""
@@ -162,6 +162,10 @@ class KeySearcher:
                     "[bold bright_cyan]Already Found:[/bold bright_cyan]", f"[bold yellow]{startup_info['num_existing']}[/bold yellow]",
                     "", ""
                 )
+            content.add_row(
+                "[bold bright_cyan]No Dup Cap:[/bold bright_cyan]", f"[dim]>{startup_info['max_pattern_length']} chars[/dim]",
+                "", ""
+            )
             
             # Separator
             content.add_row("[dim]" + "─" * 40 + "[/dim]", "", "", "")
@@ -193,7 +197,7 @@ class KeySearcher:
                 "[bold bright_cyan]CPU:[/bold bright_cyan]", f"[{bar_color}]{bar}[/{bar_color}] [bold white]{cpu_percent:.0f}%[/bold white]"
             )
             
-            # WoW-style rarity colors
+            # Rarity colors by pattern length
             COLOR_ARTIFACT = "#FF8000"   # 10+ chars - Orange
             COLOR_EPIC = "#A335EE"       # 9 chars - Purple
             COLOR_RARE = "#0070DD"       # 8 chars - Blue
@@ -240,6 +244,7 @@ class KeySearcher:
             
             # Calculate ETA for next key based on remaining patterns
             # Combined probability = sum(1/16^L for each remaining pattern)
+            progress_panel = None  # Default: no progress panel
             if keys_per_sec > 0 and remaining_lengths:
                 combined_prob = sum(1.0 / (16 ** plen) for plen in remaining_lengths)
                 if combined_prob > 0:
@@ -247,17 +252,19 @@ class KeySearcher:
                     expected_seconds = expected_keys / keys_per_sec
                     time_since_last = datetime.now().timestamp() - last_find_time
                     
-                    # Progress can exceed 100% or go negative (if key found early)
-                    raw_progress = (time_since_last / expected_seconds) if expected_seconds > 0 else 0
-                    progress = raw_progress - found_credits  # Can be negative!
+                    # Session expected: how many keys should we have found by now?
+                    session_elapsed = datetime.now().timestamp() - start_time
+                    session_expected_keys = session_elapsed * keys_per_sec * combined_prob
+                    
+                    # Progress: time since last find / expected time per key
+                    # Resets to 0 when a key is found, grows towards 100%
+                    progress = (time_since_last / expected_seconds) if expected_seconds > 0 else 0
                     
                     # Bar is capped at 0-100%, but percentage display can go outside
                     bar_progress = max(0.0, min(1.0, progress))
                     
                     # Color changes based on progress
-                    if progress < 0:
-                        bar_color = "bright_green"  # Ahead of schedule!
-                    elif progress < 0.5:
+                    if progress < 0.5:
                         bar_color = "bright_cyan"
                     elif progress < 1.0:
                         bar_color = "bright_yellow"
@@ -294,13 +301,46 @@ class KeySearcher:
                     
                     progress_bar = "".join(bar_chars)
                     
-                    # Progress panel content
-                    progress_text = f"[bold bright_magenta]Next Key ETA:[/bold bright_magenta] [bold white]{eta_str}[/bold white]    [dim]Elapsed:[/dim] [dim white]{elapsed_str}[/dim white]\n{progress_bar}"
+                    # Build per-length ETA timers with rarity colors
+                    from collections import Counter
+                    len_counts = Counter(remaining_lengths)
+                    eta_timers = []
+                    # Collect counts for 11+ separately
+                    count_11_plus = sum(c for l, c in len_counts.items() if l >= 11)
+                    for length in sorted(len_counts.keys()):
+                        if length > 10:
+                            continue  # Skip individual lengths > 10, handled as 11+
+                        count = len_counts[length]
+                        if count > 0 and keys_per_sec > 0:
+                            prob = count / (16 ** length)
+                            eta_secs = 1.0 / (prob * keys_per_sec)
+                            # Color based on length
+                            if length >= 10:
+                                color = COLOR_ARTIFACT
+                            elif length == 9:
+                                color = COLOR_EPIC
+                            elif length == 8:
+                                color = COLOR_RARE
+                            elif length == 7:
+                                color = COLOR_UNCOMMON
+                            elif length == 6:
+                                color = COLOR_COMMON
+                            else:
+                                color = COLOR_POOR
+                            eta_timers.append(f"[dim]{length}:[/dim][{color}]{KeySearcher.format_time(eta_secs)}[/{color}]")
+                    # Add 11+ in red if there are any patterns >= 11
+                    if count_11_plus > 0 and keys_per_sec > 0:
+                        prob_11 = count_11_plus / (16 ** 11)
+                        eta_secs_11 = 1.0 / (prob_11 * keys_per_sec)
+                        eta_timers.append(f"[dim]11+:[/dim][bold red]{KeySearcher.format_time(eta_secs_11)}[/bold red]")
+                    eta_timers_str = "  ".join(eta_timers) if eta_timers else ""
+                    
+                    # Progress panel content with expected vs found keys
+                    expected_found_str = f"[dim]Session:[/dim] [bold white]{last_found}[/bold white] [dim]/[/dim] [bold yellow]{session_expected_keys:.2f}[/bold yellow]"
+                    progress_text = f"[bold bright_magenta]Next Key ETA:[/bold bright_magenta] [bold white]{eta_str}[/bold white]    [dim]Elapsed:[/dim] [dim white]{elapsed_str}[/dim white]    {expected_found_str}    {eta_timers_str}\n{progress_bar}"
                     
                     # Show formula only in verbose mode
                     if startup_info.get('verbose', False):
-                        from collections import Counter
-                        len_counts = Counter(remaining_lengths)
                         formula_parts = []
                         for length in sorted(len_counts.keys()):
                             count = len_counts[length]
@@ -322,7 +362,7 @@ class KeySearcher:
                         
                         for pattern, preview in found_keys_list[-5:]:
                             pattern_len = len(pattern)
-                            # WoW-style rarity indicators based on pattern length
+                            # Rarity indicators based on pattern length
                             if pattern_len >= 10:
                                 symbol = f"[{COLOR_ARTIFACT}]⭐💎[/{COLOR_ARTIFACT}]"
                                 pattern_style = f"[bold {COLOR_ARTIFACT}]"
@@ -365,7 +405,7 @@ class KeySearcher:
                     
                     return Group(main_panel, progress_panel)
             
-            # No progress bar case - but might have found keys
+            # No progress panel case (keys_per_sec == 0 or no remaining patterns)
             if found_keys_list:
                 found_content = Table.grid(padding=(0, 2))
                 found_content.add_column(justify="left")
@@ -430,6 +470,15 @@ class KeySearcher:
                                 live.update(build_panel())
                                 continue
                             
+                            # Handle pattern hot-reload notification
+                            if msg.get('patterns_reloaded'):
+                                startup_info['num_patterns'] = msg['new_count']
+                                # Add new patterns to remaining_lengths (assuming average length)
+                                for _ in range(msg['added']):
+                                    remaining_lengths.append(7)  # Default assumption for new patterns
+                                live.update(build_panel())
+                                continue
+                            
                             last_total = msg.get('total', last_total)
                             last_found = msg.get('found', last_found)
                             
@@ -447,8 +496,8 @@ class KeySearcher:
                                 # Patterns > max_pattern_length can be found multiple times
                                 if plen <= startup_info['max_pattern_length'] and plen in remaining_lengths:
                                     remaining_lengths.remove(plen)
-                                # Add 100% credit for found key (reduces displayed progress by 100%)
-                                found_credits += 1.0
+                                # Reset last_find_time to now (for Elapsed timer)
+                                last_find_time = datetime.now().timestamp()
                             
                             live.update(build_panel())
                     
@@ -460,14 +509,22 @@ class KeySearcher:
             pass
     
     def generate_and_check_key(self, worker_id: int, shared_counter, shared_found,
-                                found_patterns_dict, session_found_list, start_time,
+                                found_patterns_dict, session_found_list, shared_patterns, start_time,
                                 display_queue, pause_event, stop_event, single_pattern_mode) -> None:
         """Worker process for key generation"""
         local_checked = 0
+        local_patterns_cache = set(shared_patterns.keys())  # Local cache for performance
+        last_cache_update = 0
         
         try:
             while not stop_event.is_set():
                 pause_event.wait()
+                
+                # Refresh pattern cache every 10000 keys
+                local_checked_total = local_checked
+                if local_checked_total - last_cache_update >= 10000:
+                    local_patterns_cache = set(shared_patterns.keys())
+                    last_cache_update = local_checked_total
                 
                 private_key = ed25519.Ed25519PrivateKey.generate()
                 public_key = private_key.public_key()
@@ -484,8 +541,8 @@ class KeySearcher:
                     encryption_algorithm=serialization.NoEncryption()
                 )
                 
-                for pattern in self.patterns:
-                    if public_hex.startswith(pattern.upper()):
+                for pattern in local_patterns_cache:
+                    if public_hex.startswith(pattern):
                         if len(pattern) <= self.max_pattern_length:
                             if pattern in found_patterns_dict:
                                 continue
@@ -619,15 +676,49 @@ class KeySearcher:
         manager = mp.Manager()
         found_patterns_dict = manager.dict()
         session_found_list = manager.list()
+        shared_patterns = manager.dict()  # Shared patterns for hot-reload
         display_queue = manager.Queue()
         pause_event = mp.Event()
         pause_event.set()
         stop_event = mp.Event()  # For single pattern mode auto-exit
         
+        # Initialize shared patterns
+        for pattern in self.patterns:
+            shared_patterns[pattern.upper()] = True
+        
         for pattern in existing_patterns:
             found_patterns_dict[pattern] = True
         
         start_time = datetime.now().timestamp()
+        
+        # Pattern hot-reload thread (reload every 30 seconds)
+        def pattern_reload_thread():
+            if self.single_pattern_mode:
+                return  # No reload in single pattern mode
+            last_count = len(self.patterns)
+            while not stop_event.is_set():
+                time.sleep(30)  # Check every 30 seconds
+                if stop_event.is_set():
+                    break
+                try:
+                    new_patterns = self.load_patterns(self.patterns_file)
+                    added = 0
+                    for p in new_patterns:
+                        p_upper = p.upper()
+                        if p_upper not in shared_patterns:
+                            shared_patterns[p_upper] = True
+                            added += 1
+                    if added > 0:
+                        display_queue.put({
+                            'patterns_reloaded': True,
+                            'new_count': len(shared_patterns),
+                            'added': added
+                        })
+                except Exception:
+                    pass  # Ignore reload errors
+        
+        reload_thread = threading.Thread(target=pattern_reload_thread, daemon=True)
+        reload_thread.start()
         
         # Keyboard listener
         def keyboard_listener():
@@ -663,7 +754,7 @@ class KeySearcher:
                 p = mp.Process(
                     target=self.generate_and_check_key,
                     args=(i, shared_counter, shared_found, found_patterns_dict,
-                          session_found_list, start_time, display_queue, pause_event,
+                          session_found_list, shared_patterns, start_time, display_queue, pause_event,
                           stop_event, self.single_pattern_mode)
                 )
                 p.start()
