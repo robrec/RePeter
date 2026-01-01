@@ -4,14 +4,12 @@ A Python script for **MeshCore** that uses all available CPU cores to search for
 
 ## Features
 
-- ✨ Multi-core processing for maximum performance
-- 🔍 Search for custom patterns at the beginning of the Public Key (Base58)
-- 💾 Automatic saving of found key pairs
-- 🚫 Duplicate prevention: Patterns up to 7 characters are saved only once (configurable)
-- 📊 Live statistics during search with session tracking
-- 🎯 Real-time display of found patterns in current session
-- 🔒 Secure storage of Private and Public Keys
-- ⏰ Epoch timestamp for chronological sorting
+- Multi-core processing for maximum performance
+- Search for custom patterns at the beginning of the Public Key (Base58)
+- Automatic saving of found key pairs
+- Duplicate prevention: Patterns up to 7 characters are saved only once (configurable)
+- Live statistics during search with session tracking
+- Epoch timestamp for chronological sorting
 - 🐳 **Docker support**: Easy containerization for portable deployment
 
 ## Installation
