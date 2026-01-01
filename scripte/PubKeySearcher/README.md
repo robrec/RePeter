@@ -10,6 +10,8 @@ Perfekt für einprägsame Keys für **MeshCore** Repeater!
 
 Diese Website ist perfekt für schnelle, unkomplizierte Key-Generierung und ich lege sie jedem ans Herz. Tatsächlich war diese Seite meine Inspiration für dieses Tool - ich wollte eine Möglichkeit schaffen, **mehrere komplexere Keys gleichzeitig zu suchen**, um Ressourcen zu schonen und Zeit zu sparen, wenn man mehrere Repeater mit benutzerdefinierten Patterns konfigurieren möchte.
 
+**GitHub:** [https://github.com/agessaman/meshcore-web-keygen](https://github.com/agessaman/meshcore-web-keygen)
+
 **Verwenden Sie dieses Tool, wenn:**
 - Sie mehrere Keys mit unterschiedlichen Patterns gleichzeitig suchen möchten
 - Sie komplexere/längere Patterns (7+ Zeichen) benötigen
