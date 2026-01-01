@@ -16,6 +16,11 @@ Perfekt für einprägsame Keys für **MeshCore** Repeater!
 - **Alternate Screen Buffer** - Professionelle Vollbild-Anzeige wie bei `htop`
 - **Farbcodierte Anzeige** - Übersichtliche Darstellung aller Statistiken
 - **CPU-Auslastungsanzeige** - Grafische Fortschrittsanzeige mit Farbcodierung
+- **Seltenheits-Indikatoren** - Visuelle Markierung je nach Pattern-Länge:
+  - `•` (gelb) - 7 Zeichen oder kürzer
+  - `✨` (grün) - 8 Zeichen
+  - `⭐` (magenta) - 9 Zeichen
+  - `⭐💎` (rot) - 10+ Zeichen (extrem selten!)
 
 ### Steuerung
 - **Pause/Resume** - Mit `P` pausieren, mit `R` fortsetzen
@@ -131,15 +136,21 @@ BREMESH
 │   Patterns:  148                              Workers:  4                             │
 │   Already Found:  38                                                                  │
 │   ────────────────────────────────────────                                            │
-│   Status:  ▶ RUNNING (press P to pause)                                               │
+│   Status:  ▶ RUNNING                                                                  │
 │   Session:  794.0k keys                      All-Time:  151.7M keys                   │
-│   Found:  0 matches                          Speed:  39.3k keys/s                     │
+│   Found:  3 matches                          Speed:  39.3k keys/s                     │
 │   Duration:  20s                             CPU:  ████████████████████ 100%          │
 │                                                                                       │
 │   ────────────────────────────────────────                                            │
 │   Time Estimates:                                                                     │
 │   7 chars:  1.9h                             8 chars:  1.3d                           │
 │   9 chars:  20.3d                            10 chars:  324.1d                        │
+│                                                                                       │
+│   ────────────────────────────────────────                                            │
+│   Found Keys:                                                                         │
+│   • CAFE1234         CAFE1234567890ABCDEF...                                          │
+│   ✨ DEADBEEF        DEADBEEF567890ABCDEF...                                          │
+│   ⭐ BREMESH123      BREMESH123567890ABCD...                                          │
 │                                                                                       │
 ╰────────────────────── Ctrl+C to stop • P to pause • R to resume ─────────────────────╯
 ```
