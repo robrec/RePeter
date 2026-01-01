@@ -1,32 +1,34 @@
 # Ed25519 Public Key Pattern Searcher
 
-Ein Python-Script für **MeshCore**, das mit allen verfügbaren CPU-Kernen nach ed25519 Public Keys mit speziellen Patterns am Anfang sucht. Ziel ist es, eindeutige und leicht erkennbare Keys für Repeater zu generieren, um Verwechslungen zu vermeiden.
+A Python script for **MeshCore** that uses all available CPU cores to search for ed25519 Public Keys with special patterns at the beginning. The goal is to generate unique and easily recognizable keys for repeaters to avoid confusion.
 
 ## Features
 
-- Multi-Core Processing für maximale Performance
-- Sucht nach benutzerdefinierten Patterns am Anfang des Public Keys (Base58)
-- Automatisches Speichern von gefundenen Key-Paaren
-- Duplikat-Vermeidung: Patterns bis 7 Zeichen werden nur 1x gespeichert (konfigurierbar)
-- Live-Statistiken während der Suche mit Session-Tracking
-- Anzeige gefundener Patterns in der aktuellen Session
-- **Docker-Support**: Einfache Containerisierung für portables Deployment
+- ✨ Multi-core processing for maximum performance
+- 🔍 Search for custom patterns at the beginning of the Public Key (Base58)
+- 💾 Automatic saving of found key pairs
+- 🚫 Duplicate prevention: Patterns up to 7 characters are saved only once (configurable)
+- 📊 Live statistics during search with session tracking
+- 🎯 Real-time display of found patterns in current session
+- 🔒 Secure storage of Private and Public Keys
+- ⏰ Epoch timestamp for chronological sorting
+- 🐳 **Docker support**: Easy containerization for portable deployment
 
 ## Installation
 
-### Option 1: Docker (empfohlen)
+### Option 1: Docker (recommended)
 
-**Vorteile:**
+**Advantages:**
 
-- ✅ Keine lokale Python-Installation nötig
-- ✅ Isolierte Umgebung
-- ✅ Portabel auf jedem System (Windows, Linux, macOS)
-- ✅ Einfaches Deployment auf Servern
-- ✅ Automatische Dependency-Verwaltung
+- ✅ No local Python installation required
+- ✅ Isolated environment
+- ✅ Portable on any system (Windows, Linux, macOS)
+- ✅ Easy deployment on servers
+- ✅ Automatic dependency management
 
-**Voraussetzungen:**
+**Requirements:**
 
-- Docker & Docker Compose installiert
+- Docker & Docker Compose installed
 
 **Quick Start:**
 
@@ -34,28 +36,28 @@ Ein Python-Script für **MeshCore**, das mit allen verfügbaren CPU-Kernen nach 
 docker-compose up
 ```
 
-📖 **Vollständige Docker-Dokumentation:** [DOCKER.md](DOCKER.md)
+📖 **Complete Docker documentation:** [DOCKER.md](DOCKER.md)
 
-### Option 2: Python (lokal)
+### Option 2: Python (local)
 
-**Voraussetzungen:**
+**Requirements:**
 
-- Python 3.7 oder höher
+- Python 3.7 or higher
 - pip (Python Package Manager)
 
-**Dependencies installieren:**
+**Install dependencies:**
 
 ```bash
 pip install cryptography base58
 ```
 
-## Verwendung
+## Usage
 
-### 1. Patterns definieren
+### 1. Define Patterns
 
-Bearbeite die Datei `searchFor.txt` und füge die gewünschten Patterns hinzu (ein Pattern pro Zeile).
+Edit the file `searchFor.txt` and add the desired patterns (one pattern per line).
 
-Beispiel:
+Example:
 
 ```
 AAAAAA
@@ -65,47 +67,47 @@ CAFE
 D0000000
 ```
 
-Die mitgelieferte Liste enthält bereits viele interessante Patterns!
+The included list already contains many interesting patterns!
 
-### 2. Script starten
+### 2. Start Script
 
-**Python (direkt):**
+**Python (direct):**
 
 ```bash
 python key_searcher.py
 ```
 
-**Mit Optionen:**
+**With options:**
 
 ```bash
-# Duplikat-Grenze auf 10 Zeichen setzen
+# Set duplicate limit to 10 characters
 python key_searcher.py --max-pattern-length 10
 
-# Andere Pattern-Datei verwenden
+# Use different pattern file
 python key_searcher.py --patterns-file custom_patterns.txt
 
-# Hilfe anzeigen
+# Show help
 python key_searcher.py --help
 ```
 
 **Docker:**
 
 ```bash
-# Container starten
+# Start container
 docker-compose up
 
-# Im Hintergrund
+# Run in background
 docker-compose up -d
 
-# Logs ansehen
+# View logs
 docker-compose logs -f
 ```
 
-👉 **Mehr Docker-Optionen:** Siehe [DOCKER.md](DOCKER.md) für erweiterte Konfiguration, CPU/Memory-Limits, Multi-Container-Setup, etc.
+👉 **More Docker options:** See [DOCKER.md](DOCKER.md) for advanced configuration, CPU/Memory limits, multi-container setup, etc.
 
-Das Script nutzt automatisch alle verfügbaren CPU-Kerne.
+The script automatically uses all available CPU cores.
 
-#### Konfiguration
+#### Configuration
 
 **Environment Variable (Docker):**
 
@@ -113,190 +115,213 @@ In `docker-compose.yml`:
 
 ```yaml
 environment:
-  - MAX_PATTERN_LENGTH=10  # Patterns bis 10 Zeichen nur 1x speichern
+  - MAX_PATTERN_LENGTH=10  # Save patterns up to 10 characters only once
 ```
 
 **Command-Line Arguments (Python):**
 
-- `--max-pattern-length N` - Maximale Pattern-Länge für Duplikat-Vermeidung (Standard: 7)
-- `--patterns-file FILE` - Pfad zur Pattern-Datei (Standard: searchFor.txt)
-- `--output-dir DIR` - Ausgabe-Verzeichnis (Standard: found_keys)
+- `--max-pattern-length N` - Maximum pattern length for duplicate prevention (default: 7)
+- `--patterns-file FILE` - Path to pattern file (default: searchFor.txt)
+- `--output-dir DIR` - Output directory (default: found_keys)
 
-### 3. Script beenden
+### 3. Stop Script
 
-Drücke `Strg+C` um die Suche zu beenden. Alle bereits gefundenen Keys bleiben gespeichert.
+Press `Ctrl+C` to stop the search. All already found keys remain saved.
 
-## Ausgabe
+## Output
 
-Gefundene Keys werden im Ordner `found_keys/` gespeichert mit folgendem Format:
+Found keys are saved in the `found_keys/` folder with the following format:
 
-- **Dateiname**: `{EPOCH}_{PATTERN}.txt` (z.B. `1735700000_CAFE.txt`)
-- **Inhalt**: Private Key (PEM), Public Key (PEM), Public Key (Base58)
+- **Filename**: `{EPOCH}_{PATTERN}.txt` (e.g., `1735700000_CAFE.txt`)
+- **Content**: Private Key (PEM), Public Key (PEM), Public Key (Base58)
 
-**Public Key Format**: Der Base58-encodierte Public Key ist der Schlüssel, den Sie verteilen!
-
-```
-Beispiel: CAFEM37BEuiceCLzuduYBHiYTsjfWSTaCtYdnas5JGkV
-```
-
-**⚠️ WICHTIG:** Die Private Keys sind NICHT verschlüsselt! Halte diese Dateien sicher und teile sie nicht!
-
-## Duplikat-Vermeidung
-
-Das Script erkennt automatisch bereits gefundene Patterns (bis 7 Zeichen, konfigurierbar) im `found_keys/` Ordner:
-
-- Beim Start werden alle vorhandenen Dateien gescannt
-- Bereits gefundene Patterns werden übersprungen
-- Nur neue Patterns werden gesucht und gespeichert
-
-**Beispiel-Output beim Start:**
+**Public Key Format**: The Base58-encoded Public Key is the key you distribute!
 
 ```
-Bereits gefunden (werden übersprungen): 9
+Example: CAFEM37BEuiceCLzuduYBHiYTsjfWSTaCtYdnas5JGkV
+```
+
+**⚠️ IMPORTANT:** The Private Keys are NOT encrypted! Keep these files secure and do not share them!
+
+## Duplicate Prevention
+
+The script automatically detects already found patterns (up to 7 characters, configurable) in the `found_keys/` folder:
+
+- All existing files are scanned at startup
+- Already found patterns are skipped
+- Only new patterns are searched and saved
+
+**Example output at startup:**
+
+```
+Already found (will be skipped): 9
   -> 1337, ACAB, BABE, BEEF, CAFE, DEAD, DEED, FADE, FEED
 ```
 
-## Live-Statistiken
+## Live Statistics
 
-Während der Suche zeigt das Script detaillierte Fortschritts-Updates:
+During the search, the script shows detailed progress updates:
 
 ```
-Worker 0: 300,000 Keys geprüft | Total: 1,200,000 | Gefunden: 3 | Session: [ABC123, C0DED, FACE]
+Worker 0: 300,000 Keys checked | Total: 1,200,000 | Found: 3 | Session: [ABC123, C0DED, FACE]
 ```
 
-**Anzeige-Elemente:**
-- **Worker N**: Welcher CPU-Kern arbeitet
-- **Keys geprüft**: Anzahl der von diesem Worker geprüften Keys
-- **Total**: Gesamtanzahl aller geprüften Keys (alle Worker)
-- **Gefunden**: Anzahl gefundener Matches in dieser Session
-- **Session**: Liste der in dieser Session gefundenen Patterns (alphabetisch sortiert)
+**Display elements:**
+- **Worker N**: Which CPU core is working
+- **Keys checked**: Number of keys checked by this worker
+- **Total**: Total number of all checked keys (all workers)
+- **Found**: Number of matches found in this session
+- **Session**: List of patterns found in this session (alphabetically sorted)
 
-**Bei Session-Ende:**
+**At session end:**
 ```
 ======================================================================
-Suche beendet!
-Geprüfte Keys: 5,234,567
-Gefundene Matches: 5
-Gefundene Patterns in dieser Session: BABE, C0DE, DEAD, FACE, FEED
+Search completed!
+Checked Keys: 5,234,567
+Found Matches: 5
+Found Patterns in this session: BABE, C0DE, DEAD, FACE, FEED
 ======================================================================
 ```
 
 ## Performance
 
-Die Geschwindigkeit hängt von deiner CPU ab. Typische Werte:
+Speed depends on your CPU. Typical values:
 
-- 4 Cores: ~100.000 - 150.000 Keys/Sekunde
-- 8 Cores: ~200.000 - 300.000 Keys/Sekunde
-- 16 Cores: ~400.000 - 600.000 Keys/Sekunde
+- 4 Cores: ~100,000 - 150,000 Keys/second
+- 8 Cores: ~200,000 - 300,000 Keys/second
+- 16 Cores: ~400,000 - 600,000 Keys/second
 
-**Hinweis:** Je länger das Pattern, desto seltener wird ein Match gefunden!
+**Note:** The longer the pattern, the less likely a match will be found!
 
-**Beispiel-Suche:**
-- 1 Million Keys in ~10 Sekunden (4 Cores)
-- Patterns mit 4 Zeichen: Durchschnittlich 1 Match pro ~10-20 Millionen Keys
-- Patterns mit 6 Zeichen: Sehr selten, kann Stunden bis Tage dauern
+**Example search:**
+- 1 million keys in ~10 seconds (4 cores)
+- Patterns with 4 characters: Average 1 match per ~10-20 million keys
+- Patterns with 6 characters: Very rare, can take hours to days
 
-## Wahrscheinlichkeiten
+## Probabilities
 
-Die Wahrscheinlichkeit, ein Pattern zu finden (Base58-Alphabet hat 58 Zeichen):
+Probability of finding a pattern (Base58 alphabet has 58 characters):
 
-- 4 Zeichen (z.B. DEAD): ~1 zu 11,3 Millionen
-- 6 Zeichen (z.B. AAAAAA): ~1 zu 38 Milliarden
-- 8 Zeichen (z.B. DEADBEEF): ~1 zu 128 Billionen
+- 4 characters (e.g., DEAD): ~1 in 11.3 million
+- 6 characters (e.g., AAAAAA): ~1 in 38 billion
+- 8 characters (e.g., DEADBEEF): ~1 in 128 trillion
 
-**Tipp:** Kürzere Patterns (4-7 Zeichen) sind realistisch zu finden!
+**Tip:** Shorter patterns (4-7 characters) are realistic to find!
 
 ## MeshCore Integration
 
-Diese Keys werden für **MeshCore Repeater** verwendet, um:
+These keys are used for **MeshCore Repeaters** to:
 
-- Eindeutige Identifikation zu gewährleisten
-- Verwechslungen zu vermeiden
-- Leicht erkennbare und einprägsame Adressen zu haben
+- Ensure unique identification
+- Avoid confusion
+- Have easily recognizable and memorable addresses
 
-Der Base58-Public-Key kann direkt als Repeater-Identifikator verwendet werden.
+The Base58 Public Key can be used directly as a repeater identifier.
 
-### Private Key in MeshCore Repeater einrichten
+### Setting up Private Key in MeshCore Repeater
 
-Um einen gefundenen Private Key in einem MeshCore Repeater zu verwenden:
+To use a found Private Key in a MeshCore Repeater:
 
-1. **Repeater via USB verbinden**
-2. **CLI Console öffnen** (z.B. über Serial Monitor, PuTTY, oder die MeshCore Console)
-3. **Private Key setzen** mit dem Befehl:
+1. **Connect repeater via USB**
+2. **Open CLI Console** (e.g., via Serial Monitor, PuTTY, or the MeshCore Console)
+3. **Set Private Key** with the command:
 
    ```
    set prv.key <PRIVATE_KEY>
    ```
 
-   Dabei ist `<PRIVATE_KEY>` der Private Key aus der generierten Datei (ohne PEM-Header/Footer, nur der Base64-Teil oder je nach MeshCore-Format).
-4. **Repeater neustarten**, damit die Änderungen wirksam werden
+   Where `<PRIVATE_KEY>` is the Private Key from the generated file (without PEM header/footer, only the Base64 part or according to MeshCore format).
+4. **Restart repeater** for the changes to take effect
 
-**Beispiel:**
+**Example:**
 
 ```bash
 set prv.key MC4CAQAwBQYDK2VwBCIEINO1JWgy+o2iLVy+mZZaVqewr/YKZZbVxOBaHP44t0cX
 ```
 
-**Hinweis:** Der Public Key wird automatisch aus dem Private Key abgeleitet und sollte dann mit dem gewünschten Pattern beginnen (z.B. `CAFE...`).
+**Note:** The Public Key is automatically derived from the Private Key and should then start with the desired pattern (e.g., `CAFE...`).
 
-## Sicherheitshinweise
+## Security Notes
 
-⚠️ **Private Keys sicher aufbewahren!**
+⚠️ **Keep Private Keys secure!**
 
-- Niemals Private Keys in öffentliche Repositories hochladen
-- Die `.gitignore` ist bereits so konfiguriert, dass `found_keys/` ausgeschlossen wird
-- Private Keys mit starkem Passwort verschlüsseln, wenn sie langfristig gespeichert werden
-- Backup der Keys an sicherem Ort aufbewahren
+- Never upload Private Keys to public repositories
+- The `.gitignore` is already configured to exclude `found_keys/`
+- Encrypt Private Keys with a strong password when storing long-term
+- Keep backups of keys in a secure location
 
-## Technische Details
+## Technical Details
 
-- **Algorithmus**: Ed25519 (Elliptic Curve Digital Signature Algorithm)
-- **Key-Länge**: 256 Bit (32 Bytes)
-- **Public Key Format**: Base58-Encoding (wie Bitcoin/Solana)
-- **Public Key Länge**: ~44 Zeichen in Base58
-- **Multiprocessing**: Nutzt Python's `multiprocessing` Modul
-- **Dateiformat**: Epoch-Timestamp für chronologische Sortierung
+- **Algorithm**: Ed25519 (Elliptic Curve Digital Signature Algorithm)
+- **Key Length**: 256 Bit (32 Bytes)
+- **Public Key Format**: Base58 encoding (like Bitcoin/Solana)
+- **Public Key Length**: ~44 characters in Base58
+- **Multiprocessing**: Uses Python's `multiprocessing` module
+- **File Format**: Epoch timestamp for chronological sorting
 
-## Dateistruktur
+## File Structure
 
 ```
 PubKeySearcher/
-├── key_searcher.py      # Haupt-Script
-├── searchFor.txt        # Pattern-Liste
-├── .gitignore          # Git-Schutz für Keys
-├── README.md           # Diese Dokumentation
-└── found_keys/         # Gefundene Keys (nicht in Git)
+├── key_searcher.py      # Main script
+├── searchFor.txt        # Pattern list
+├── .gitignore          # Git protection for keys
+├── README.md           # This documentation
+├── DOCKER.md           # Docker documentation
+├── Dockerfile          # Docker image definition
+├── docker-compose.yml  # Docker Compose configuration
+└── found_keys/         # Found keys (not in Git)
     ├── 1735700000_CAFE.txt
     ├── 1735700123_DEAD.txt
     └── ...
 ```
 
+## Pattern Examples
+
+The included `searchFor.txt` contains interesting patterns such as:
+
+### Nice Repeating Patterns
+- **AAAAAA, BBBBBB, CCCCCC** etc. - All same characters
+- **000000, 111111, 222222** etc. - All same digits
+
+### Hex Words (Geek Culture)
+- **DEADBEEF, CAFEBABE, C0FFEE** - Classic hex words
+- **BADC0DE, FACADE, DECADE** - More creative terms
+- **FEED, FACE, BABE, BEEF** - Short memorable words
+
+### Special Patterns
+- **B0000000 to BF000000** - All B*000000 variants
+- **123456, ABCDEF** - Sequences
+- **1337, ACAB** - Culture numbers
+
 ## Troubleshooting
 
-### "ModuleNotFoundError: No module named 'cryptography'" oder "'base58'"
+### "ModuleNotFoundError: No module named 'cryptography'" or "'base58'"
 
-Installiere die benötigten Libraries:
+Install the required libraries:
 
 ```bash
 pip install cryptography base58
 ```
 
-### Script ist langsam
+### Script is slow
 
-- Überprüfe, ob alle CPU-Kerne genutzt werden (Task Manager / htop)
-- Kürzere Patterns haben höhere Erfolgsraten
-- Moderne CPUs mit mehr Kernen sind schneller
+- Check if all CPU cores are being used (Task Manager / htop)
+- Shorter patterns have higher success rates
+- Modern CPUs with more cores are faster
 
-### Keine Matches gefunden
+### No matches found
 
-Das ist normal! Abhängig vom Pattern kann es Stunden oder Tage dauern, bis ein Match gefunden wird.
+This is normal! Depending on the pattern, it can take hours or days until a match is found.
 
-**Empfehlung:** Starte mit 4-6 Zeichen langen Patterns für realistische Erfolgschancen.
+**Recommendation:** Start with 4-6 character patterns for realistic success chances.
 
-### PEM-Key beginnt nicht mit Pattern
+### PEM key doesn't start with pattern
 
-Das ist korrekt! Der **Base58-Public-Key** (nicht das PEM-Format) beginnt mit dem Pattern. Das PEM-Format enthält zusätzliche Metadaten und ist für andere Zwecke gedacht.
+This is correct! The **Base58 Public Key** (not the PEM format) starts with the pattern. The PEM format contains additional metadata and is intended for other purposes.
 
-## Lizenz
+## License
+
+This script is intended for personal and educational use as well as for MeshCore.
 
 Dieses Script ist für persönliche und Bildungszwecke sowie für MeshCore gedacht.
