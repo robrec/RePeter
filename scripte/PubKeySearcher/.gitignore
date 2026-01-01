@@ -3,6 +3,10 @@ found_keys/
 *.pem
 *.key
 searchForPrivate.txt
+
+# Statistics
+.total_stats.json
+
 # Python Cache
 __pycache__/
 *.py[cod]
@@ -11,6 +15,7 @@ __pycache__/
 
 # Virtual Environment
 venv/
+.venv/
 env/
 ENV/
 
