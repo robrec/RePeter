@@ -2,7 +2,7 @@
 found_keys/
 *.pem
 *.key
-
+searchForPrivate.txt
 # Python Cache
 __pycache__/
 *.py[cod]

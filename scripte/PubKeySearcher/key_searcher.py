@@ -259,8 +259,8 @@ def main():
     parser.add_argument(
         '--patterns-file',
         type=str,
-        default='searchFor.txt',
-        help='Path to pattern file (Default: searchFor.txt)'
+        default=os.getenv('PATTERNS_FILE', 'searchFor.txt'),
+        help='Path to pattern file (Default: searchFor.txt, can also be set via PATTERNS_FILE ENV)'
     )
     parser.add_argument(
         '--output-dir',

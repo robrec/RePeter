@@ -59,10 +59,9 @@ Example:
 
 ```
 AAAAAA
-DEADBEEF
 123456
 CAFE
-D0000000
+D1234
 ```
 
 The included list already contains many interesting patterns!
@@ -114,12 +113,13 @@ In `docker-compose.yml`:
 ```yaml
 environment:
   - MAX_PATTERN_LENGTH=10  # Save patterns up to 10 characters only once
+  - PATTERNS_FILE=myPatterns.txt  # Use alternative pattern file (optional)
 ```
 
 **Command-Line Arguments (Python):**
 
 - `--max-pattern-length N` - Maximum pattern length for duplicate prevention (default: 7)
-- `--patterns-file FILE` - Path to pattern file (default: searchFor.txt)
+- `--patterns-file FILE` - Path to pattern file (default: searchFor.txt, can also be set via `PATTERNS_FILE` ENV)
 - `--output-dir DIR` - Output directory (default: found_keys)
 
 ### 3. Stop Script

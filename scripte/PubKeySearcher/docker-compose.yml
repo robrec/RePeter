@@ -5,17 +5,19 @@ services:
     build: .
     container_name: pubkey-searcher
     environment:
-      # Maximale Pattern-Länge für Duplikat-Vermeidung (Standard: 7)
-      # Patterns bis zu dieser Länge werden nur 1x gespeichert
+      # Maximum pattern length for duplicate prevention (Default: 7)
+      # Patterns up to this length will only be saved once
       - MAX_PATTERN_LENGTH=7
+      # Path to pattern file (Default: searchFor.txt)
+      # - PATTERNS_FILE=searchFor.txt
     volumes:
-      # Persistente Speicherung der gefundenen Keys
+      # Persistent storage for found keys
       - ./found_keys:/app/found_keys
-      # Ermöglicht Änderungen an searchFor.txt ohne Rebuild
+      # Allows changes to searchFor.txt without rebuild
       - ./searchFor.txt:/app/searchFor.txt:ro
-    # Nutze alle verfügbaren CPU-Kerne
+    # Use all available CPU cores
     cpus: "0"
-    # Optional: Memory Limit setzen
+    # Optional: Set memory limit
     # mem_limit: 2g
     restart: unless-stopped
     stdin_open: true

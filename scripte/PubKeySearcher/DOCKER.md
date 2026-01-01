@@ -72,6 +72,24 @@ docker run -it --rm `
 
 Edit `searchFor.txt` on the host system. Changes are automatically applied (with active volume mount).
 
+### Use Custom Pattern File
+
+**Method 1: Environment Variable**
+
+Edit `docker-compose.yml`:
+
+```yaml
+environment:
+  - PATTERNS_FILE=myPatterns.txt
+volumes:
+  - ./found_keys:/app/found_keys
+  - ./myPatterns.txt:/app/myPatterns.txt:ro  # Mount your custom file
+```
+
+**Method 2: Replace searchFor.txt**
+
+Simply replace the content of `searchFor.txt` or create a symbolic link.
+
 ### CPU Limitation
 
 Edit `docker-compose.yml` and adjust the `cpus` value:
@@ -94,6 +112,8 @@ The Docker setup uses two volumes:
 
 1. **`./found_keys`** - Persistent storage for found keys
 2. **`./searchFor.txt`** - Pattern list (read-only)
+
+**Note:** When using a custom pattern file via `PATTERNS_FILE` environment variable, make sure to also mount that file as a volume.
 
 All found keys are saved directly on the host system.
 
