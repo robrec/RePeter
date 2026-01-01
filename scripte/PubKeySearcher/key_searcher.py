@@ -30,15 +30,21 @@ except ImportError as e:
 
 
 class KeySearcher:
-    def __init__(self, patterns_file: str = "searchFor.txt", output_dir: str = "found_keys", max_pattern_length: int = 7):
-        self.patterns = self.load_patterns(patterns_file)
+    def __init__(self, patterns_file: str = "searchFor.txt", output_dir: str = "found_keys", max_pattern_length: int = 7, single_pattern: str = None):
+        self.single_pattern_mode = single_pattern is not None
+        if single_pattern:
+            self.patterns = {single_pattern.upper()}
+            print(f"Searching for single pattern: {single_pattern.upper()}")
+        else:
+            self.patterns = self.load_patterns(patterns_file)
+            print(f"Loaded Patterns: {len(self.patterns)}")
+        
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
         self.max_pattern_length = max_pattern_length
         self.stats_file = Path(".total_stats.json")
         self.total_all_time = self.load_total_stats()
         
-        print(f"Loaded Patterns: {len(self.patterns)}")
         print(f"Output Directory: {self.output_dir.absolute()}")
         print(f"Max Pattern Length for Duplicate Prevention: {self.max_pattern_length}")
         print(f"Total Keys Checked All-Time: {self.total_all_time:,}")
@@ -121,6 +127,8 @@ class KeySearcher:
         last_found = 0
         found_keys_list = []
         is_paused = False
+        # Track found patterns by length category - start with existing counts
+        found_by_len = {k: v for k, v in startup_info['existing_counts'].items()}
         
         def build_panel():
             """Build the combined stats panel"""
@@ -179,44 +187,79 @@ class KeySearcher:
                 "[bold bright_cyan]CPU:[/bold bright_cyan]", f"[{bar_color}]{bar}[/{bar_color}] [bold white]{cpu_percent:.0f}%[/bold white]"
             )
             
+            # WoW-style rarity colors
+            COLOR_ARTIFACT = "#FF8000"   # 10+ chars - Orange
+            COLOR_EPIC = "#A335EE"       # 9 chars - Purple
+            COLOR_RARE = "#0070DD"       # 8 chars - Blue
+            COLOR_UNCOMMON = "#1EFF00"   # 7 chars - Green
+            COLOR_COMMON = "#FFFFFF"     # 6 chars - White
+            COLOR_POOR = "#9D9D9D"       # <=5 chars - Gray
+            
+            # Remaining patterns to find (total and by length)
+            # found_by_len already includes existing + session found
+            total_found = sum(found_by_len.values())
+            remaining = startup_info['num_patterns'] - total_found
+            pc = startup_info['pattern_counts']
+            # Format: found/total for each category
+            fbl = found_by_len
+            
             # Estimates section
             content.add_row("", "", "", "")
             content.add_row("[dim]" + "─" * 40 + "[/dim]", "", "", "")
-            content.add_row("[bold bright_cyan italic]Time Estimates:[/bold bright_cyan italic]", "", "", "")
             content.add_row(
-                "[bright_cyan]  7 chars:[/bright_cyan]", f"[white]{KeySearcher.estimate_time(7, keys_per_sec)}[/white]",
-                "[bright_cyan]  8 chars:[/bright_cyan]", f"[white]{KeySearcher.estimate_time(8, keys_per_sec)}[/white]"
+                "[bold bright_yellow]Time Estimates:[/bold bright_yellow]", "",
+                "[bold bright_cyan]Remaining:[/bold bright_cyan]", f"[bold white]{remaining}[/bold white] patterns"
             )
             content.add_row(
-                "[bright_cyan]  9 chars:[/bright_cyan]", f"[white]{KeySearcher.estimate_time(9, keys_per_sec)}[/white]",
-                "[bright_cyan]  10 chars:[/bright_cyan]", f"[white]{KeySearcher.estimate_time(10, keys_per_sec)}[/white]"
+                "[dim]  5 chars:[/dim]", f"[{COLOR_POOR}]{KeySearcher.estimate_time(5, keys_per_sec)}[/{COLOR_POOR}]  [dim]({fbl[5]}/{pc[5]})[/dim]",
+                "[dim]  6 chars:[/dim]", f"[{COLOR_COMMON}]{KeySearcher.estimate_time(6, keys_per_sec)}[/{COLOR_COMMON}]  [dim]({fbl[6]}/{pc[6]})[/dim]"
+            )
+            content.add_row(
+                "[dim]  7 chars:[/dim]", f"[{COLOR_UNCOMMON}]{KeySearcher.estimate_time(7, keys_per_sec)}[/{COLOR_UNCOMMON}]  [dim]({fbl[7]}/{pc[7]})[/dim]",
+                "[dim]  8 chars:[/dim]", f"[{COLOR_RARE}]{KeySearcher.estimate_time(8, keys_per_sec)}[/{COLOR_RARE}]  [dim]({fbl[8]}/{pc[8]})[/dim]"
+            )
+            content.add_row(
+                "[dim]  9 chars:[/dim]", f"[{COLOR_EPIC}]{KeySearcher.estimate_time(9, keys_per_sec)}[/{COLOR_EPIC}]  [dim]({fbl[9]}/{pc[9]})[/dim]",
+                "[dim]  10+ chars:[/dim]", f"[{COLOR_ARTIFACT}]{KeySearcher.estimate_time(10, keys_per_sec)}[/{COLOR_ARTIFACT}]  [dim]({fbl[10]}/{pc[10]})[/dim]"
             )
             
-            # Found keys section with rarity indicators
+            # Found keys section with WoW-style rarity indicators
             if found_keys_list:
                 content.add_row("", "", "", "")
                 content.add_row("[dim]" + "─" * 40 + "[/dim]", "", "", "")
                 content.add_row("[bold green]Found Keys:[/bold green]", "", "", "")
                 for pattern, preview in found_keys_list[-5:]:
                     pattern_len = len(pattern)
-                    # Rarity indicators based on pattern length
+                    # WoW-style rarity indicators based on pattern length
                     if pattern_len >= 10:
-                        symbol = "[bold red]⭐💎[/bold red]"
-                        pattern_style = "[bold red]"
+                        symbol = f"[{COLOR_ARTIFACT}]⭐💎[/{COLOR_ARTIFACT}]"
+                        pattern_style = f"[bold {COLOR_ARTIFACT}]"
+                        end_style = f"[/bold {COLOR_ARTIFACT}]"
                     elif pattern_len >= 9:
-                        symbol = "[bold magenta]⭐[/bold magenta]"
-                        pattern_style = "[bold magenta]"
+                        symbol = f"[{COLOR_EPIC}]⭐[/{COLOR_EPIC}]"
+                        pattern_style = f"[bold {COLOR_EPIC}]"
+                        end_style = f"[/bold {COLOR_EPIC}]"
                     elif pattern_len >= 8:
-                        symbol = "[bold green]✨[/bold green]"
-                        pattern_style = "[bold green]"
+                        symbol = f"[{COLOR_RARE}]✨[/{COLOR_RARE}]"
+                        pattern_style = f"[bold {COLOR_RARE}]"
+                        end_style = f"[/bold {COLOR_RARE}]"
+                    elif pattern_len >= 7:
+                        symbol = f"[{COLOR_UNCOMMON}]•[/{COLOR_UNCOMMON}]"
+                        pattern_style = f"[{COLOR_UNCOMMON}]"
+                        end_style = f"[/{COLOR_UNCOMMON}]"
+                    elif pattern_len >= 6:
+                        symbol = f"[{COLOR_COMMON}]•[/{COLOR_COMMON}]"
+                        pattern_style = f"[{COLOR_COMMON}]"
+                        end_style = f"[/{COLOR_COMMON}]"
                     else:
-                        symbol = "[yellow]•[/yellow]"
-                        pattern_style = "[yellow]"
+                        symbol = f"[{COLOR_POOR}]•[/{COLOR_POOR}]"
+                        pattern_style = f"[{COLOR_POOR}]"
+                        end_style = f"[/{COLOR_POOR}]"
                     
                     # Pad pattern for alignment
                     padded_pattern = pattern.ljust(16)
                     content.add_row(
-                        f"  {symbol} {pattern_style}{padded_pattern}[/{pattern_style.strip('[]')}]", 
+                        f"  {symbol} {pattern_style}{padded_pattern}{end_style}", 
                         f"[dim]{preview}...[/dim]", 
                         "", ""
                     )
@@ -249,6 +292,14 @@ class KeySearcher:
                             
                             if 'new_key' in msg:
                                 found_keys_list.append((msg['new_key']['pattern'], msg['new_key']['key_preview']))
+                                # Update found count by length
+                                plen = len(msg['new_key']['pattern'])
+                                if plen <= 5:
+                                    found_by_len[5] += 1
+                                elif plen >= 10:
+                                    found_by_len[10] += 1
+                                else:
+                                    found_by_len[plen] += 1
                             
                             live.update(build_panel())
                     
@@ -261,12 +312,12 @@ class KeySearcher:
     
     def generate_and_check_key(self, worker_id: int, shared_counter, shared_found,
                                 found_patterns_dict, session_found_list, start_time,
-                                display_queue, pause_event) -> None:
+                                display_queue, pause_event, stop_event, single_pattern_mode) -> None:
         """Worker process for key generation"""
         local_checked = 0
         
         try:
-            while True:
+            while not stop_event.is_set():
                 pause_event.wait()
                 
                 private_key = ed25519.Ed25519PrivateKey.generate()
@@ -297,12 +348,16 @@ class KeySearcher:
                         with shared_found.get_lock():
                             shared_found.value += 1
                         
-                        if worker_id == 0:
-                            display_queue.put({
-                                'total': shared_counter.value,
-                                'found': shared_found.value,
-                                'new_key': {'pattern': pattern, 'key_preview': public_hex[:16]}
-                            })
+                        # All workers send new_key message
+                        display_queue.put({
+                            'total': shared_counter.value,
+                            'found': shared_found.value,
+                            'new_key': {'pattern': pattern, 'key_preview': public_hex[:16]}
+                        })
+                        
+                        # In single pattern mode, signal all workers to stop
+                        if single_pattern_mode:
+                            stop_event.set()
                         break
                 
                 local_checked += 1
@@ -348,7 +403,7 @@ class KeySearcher:
         
         for file in self.output_dir.glob("*.txt"):
             parts = file.stem.split('_', 1)
-            if len(parts) >= 2 and len(parts[1]) <= self.max_pattern_length:
+            if len(parts) >= 2:
                 existing.add(parts[1])
         return existing
     
@@ -360,13 +415,41 @@ class KeySearcher:
         existing_patterns = self.load_existing_patterns()
         console = Console()
         
+        # Count patterns by length category
+        pattern_counts = {5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0}  # 10 = 10+
+        for p in self.patterns:
+            plen = len(p)
+            if plen <= 5:
+                pattern_counts[5] += 1
+            elif plen >= 10:
+                pattern_counts[10] += 1
+            else:
+                pattern_counts[plen] += 1
+        
+        # Count already found (existing) patterns by length
+        # Only count patterns that are in the current search list
+        existing_counts = {5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0}
+        patterns_upper = {p.upper() for p in self.patterns}
+        for p in existing_patterns:
+            if p.upper() not in patterns_upper:
+                continue  # Skip patterns not in current search list
+            plen = len(p)
+            if plen <= 5:
+                existing_counts[5] += 1
+            elif plen >= 10:
+                existing_counts[10] += 1
+            else:
+                existing_counts[plen] += 1
+        
         # Prepare startup info for display process
         startup_info = {
             'num_patterns': len(self.patterns),
             'max_pattern_length': self.max_pattern_length,
             'output_dir': str(self.output_dir.absolute()),
             'num_existing': len(existing_patterns),
-            'existing_patterns': ', '.join(sorted(existing_patterns)) if existing_patterns else ''
+            'existing_patterns': ', '.join(sorted(existing_patterns)) if existing_patterns else '',
+            'pattern_counts': pattern_counts,
+            'existing_counts': existing_counts
         }
         
         # Shared state
@@ -378,6 +461,7 @@ class KeySearcher:
         display_queue = manager.Queue()
         pause_event = mp.Event()
         pause_event.set()
+        stop_event = mp.Event()  # For single pattern mode auto-exit
         
         for pattern in existing_patterns:
             found_patterns_dict[pattern] = True
@@ -418,13 +502,52 @@ class KeySearcher:
                 p = mp.Process(
                     target=self.generate_and_check_key,
                     args=(i, shared_counter, shared_found, found_patterns_dict,
-                          session_found_list, start_time, display_queue, pause_event)
+                          session_found_list, start_time, display_queue, pause_event,
+                          stop_event, self.single_pattern_mode)
                 )
                 p.start()
                 processes.append(p)
             
             for p in processes:
                 p.join()
+            
+            # Workers finished (single pattern found or all patterns found)
+            if stop_event.is_set():
+                time.sleep(0.5)  # Let display catch up
+                display_queue.put('STOP')
+                display_proc.join(timeout=2)
+                if display_proc.is_alive():
+                    display_proc.terminate()
+                
+                self.save_total_stats(shared_counter.value)
+                
+                elapsed = datetime.now().timestamp() - start_time
+                keys_per_sec = int(shared_counter.value / elapsed) if elapsed > 0 else 0
+                
+                # Success Summary
+                summary = Table.grid(padding=(0, 2))
+                summary.add_column(style="cyan", justify="right")
+                summary.add_column(style="bright_white", justify="left")
+                
+                summary.add_row("Session Keys:", f"[bold green]{shared_counter.value:,}[/bold green]")
+                summary.add_row("All-Time Keys:", f"[bold blue]{self.total_all_time + shared_counter.value:,}[/bold blue]")
+                summary.add_row("Matches Found:", f"[bold yellow]{shared_found.value}[/bold yellow]")
+                summary.add_row("Average Speed:", f"[bold magenta]{keys_per_sec:,} keys/sec[/bold magenta]")
+                summary.add_row("Duration:", f"[cyan]{self.format_time(elapsed)}[/cyan]")
+                
+                if session_found_list:
+                    summary.add_row("")
+                    summary.add_row("Found Patterns:", f"[bold green]{', '.join(sorted(session_found_list))}[/bold green]")
+                
+                console.print("\n")
+                console.print(Panel(
+                    summary,
+                    title="[bold green]✓ Pattern Found![/bold green]",
+                    border_style="green",
+                    padding=(1, 2)
+                ))
+                console.print("\n")
+                return
         
         except KeyboardInterrupt:
             display_queue.put('STOP')
@@ -472,13 +595,15 @@ def main():
     parser.add_argument('--max-pattern-length', type=int, default=int(os.getenv('MAX_PATTERN_LENGTH', '7')))
     parser.add_argument('--patterns-file', type=str, default=os.getenv('PATTERNS_FILE', 'searchFor.txt'))
     parser.add_argument('--output-dir', type=str, default='found_keys')
+    parser.add_argument('--pattern', '-p', type=str, help='Search for a single pattern instead of using patterns file')
     
     args = parser.parse_args()
     
     searcher = KeySearcher(
         patterns_file=args.patterns_file,
         output_dir=args.output_dir,
-        max_pattern_length=args.max_pattern_length
+        max_pattern_length=args.max_pattern_length,
+        single_pattern=args.pattern
     )
     searcher.run()
 
