@@ -376,16 +376,20 @@ class KeySearcher:
                         for pattern, preview in found_keys_list[-5:]:
                             pattern_len = len(pattern)
                             # Rarity indicators based on pattern length
-                            if pattern_len >= 10:
-                                symbol = f"[{COLOR_ARTIFACT}]⭐💎[/{COLOR_ARTIFACT}]"
+                            if pattern_len >= 11:
+                                symbol = "[bold red]***[/bold red]"
+                                pattern_style = "[bold red]"
+                                end_style = "[/bold red]"
+                            elif pattern_len >= 10:
+                                symbol = f"[{COLOR_ARTIFACT}]**[/{COLOR_ARTIFACT}]"
                                 pattern_style = f"[bold {COLOR_ARTIFACT}]"
                                 end_style = f"[/bold {COLOR_ARTIFACT}]"
                             elif pattern_len >= 9:
-                                symbol = f"[{COLOR_EPIC}]⭐[/{COLOR_EPIC}]"
+                                symbol = f"[{COLOR_EPIC}]*[/{COLOR_EPIC}]"
                                 pattern_style = f"[bold {COLOR_EPIC}]"
                                 end_style = f"[/bold {COLOR_EPIC}]"
                             elif pattern_len >= 8:
-                                symbol = f"[{COLOR_RARE}]✨[/{COLOR_RARE}]"
+                                symbol = f"[{COLOR_RARE}]+[/{COLOR_RARE}]"
                                 pattern_style = f"[bold {COLOR_RARE}]"
                                 end_style = f"[/bold {COLOR_RARE}]"
                             elif pattern_len >= 7:
@@ -426,16 +430,20 @@ class KeySearcher:
                 
                 for pattern, preview in found_keys_list[-5:]:
                     pattern_len = len(pattern)
-                    if pattern_len >= 10:
-                        symbol = f"[{COLOR_ARTIFACT}]⭐💎[/{COLOR_ARTIFACT}]"
+                    if pattern_len >= 11:
+                        symbol = "[bold red]***[/bold red]"
+                        pattern_style = "[bold red]"
+                        end_style = "[/bold red]"
+                    elif pattern_len >= 10:
+                        symbol = f"[{COLOR_ARTIFACT}]**[/{COLOR_ARTIFACT}]"
                         pattern_style = f"[bold {COLOR_ARTIFACT}]"
                         end_style = f"[/bold {COLOR_ARTIFACT}]"
                     elif pattern_len >= 9:
-                        symbol = f"[{COLOR_EPIC}]⭐[/{COLOR_EPIC}]"
+                        symbol = f"[{COLOR_EPIC}]*[/{COLOR_EPIC}]"
                         pattern_style = f"[bold {COLOR_EPIC}]"
                         end_style = f"[/bold {COLOR_EPIC}]"
                     elif pattern_len >= 8:
-                        symbol = f"[{COLOR_RARE}]✨[/{COLOR_RARE}]"
+                        symbol = f"[{COLOR_RARE}]+[/{COLOR_RARE}]"
                         pattern_style = f"[bold {COLOR_RARE}]"
                         end_style = f"[/bold {COLOR_RARE}]"
                     elif pattern_len >= 7:
