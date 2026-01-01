@@ -50,7 +50,7 @@ class KeySearcher:
         
         return patterns
     
-    def generate_and_check_key(self, worker_id: int, check_count: int, shared_counter, shared_found, found_patterns_dict, max_pattern_length: int) -> None:
+    def generate_and_check_key(self, worker_id: int, check_count: int, shared_counter, shared_found, found_patterns_dict, max_pattern_length: int, session_found_list) -> None:
         """
         Generiert Keys und prüft sie gegen die Patterns
         Läuft in einem separaten Prozess
@@ -82,6 +82,8 @@ class KeySearcher:
                             else:
                                 # Markiere als gefunden
                                 found_patterns_dict[pattern] = True
+                                # Füge zur Session-Liste hinzu
+                                session_found_list.append(pattern)
                         
                         # Match gefunden!
                         self.save_key(private_key, public_key, public_base58, pattern)
@@ -103,8 +105,11 @@ class KeySearcher:
                 if local_checked % 10000 == 0:
                     total = shared_counter.value
                     found = shared_found.value
+                    # Zeige gefundene Patterns dieser Session
+                    session_patterns = list(session_found_list)
+                    patterns_str = ', '.join(sorted(session_patterns)) if session_patterns else 'keine'
                     print(f"Worker {worker_id}: {local_checked:,} Keys geprüft | "
-                          f"Total: {total:,} | Gefunden: {found}")
+                          f"Total: {total:,} | Gefunden: {found} | Session: [{patterns_str}]")
         
         except KeyboardInterrupt:
             print(f"\nWorker {worker_id} wird beendet...")
@@ -192,6 +197,9 @@ class KeySearcher:
         manager = mp.Manager()
         found_patterns_dict = manager.dict()
         
+        # Shared list für in dieser Session gefundene Patterns
+        session_found_list = manager.list()
+        
         # Initialisiere mit bereits vorhandenen Patterns
         for pattern in existing_patterns:
             found_patterns_dict[pattern] = True
@@ -202,7 +210,7 @@ class KeySearcher:
             for i in range(num_workers):
                 p = mp.Process(
                     target=self.generate_and_check_key,
-                    args=(i, 0, shared_counter, shared_found, found_patterns_dict, self.max_pattern_length)
+                    args=(i, 0, shared_counter, shared_found, found_patterns_dict, self.max_pattern_length, session_found_list)
                 )
                 p.start()
                 processes.append(p)
@@ -218,6 +226,8 @@ class KeySearcher:
                 p.join()
             
             print(f"\n{'='*70}")
+            if session_found_list:
+                print(f"Gefundene Patterns in dieser Session: {', '.join(sorted(session_found_list))}")
             print(f"Suche beendet!")
             print(f"Geprüfte Keys: {shared_counter.value:,}")
             print(f"Gefundene Matches: {shared_found.value}")

@@ -8,7 +8,8 @@ Ein Python-Script für **MeshCore**, das mit allen verfügbaren CPU-Kernen nach 
 - Sucht nach benutzerdefinierten Patterns am Anfang des Public Keys (Base58)
 - Automatisches Speichern von gefundenen Key-Paaren
 - Duplikat-Vermeidung: Patterns bis 7 Zeichen werden nur 1x gespeichert (konfigurierbar)
-- Live-Statistiken während der Suche
+- Live-Statistiken während der Suche mit Session-Tracking
+- Anzeige gefundener Patterns in der aktuellen Session
 - **Docker-Support**: Einfache Containerisierung für portables Deployment
 
 ## Installation
@@ -142,7 +143,7 @@ Beispiel: CAFEM37BEuiceCLzuduYBHiYTsjfWSTaCtYdnas5JGkV
 
 ## Duplikat-Vermeidung
 
-Das Script erkennt automatisch bereits gefundene Patterns (bis 7 Zeichen) im `found_keys/` Ordner:
+Das Script erkennt automatisch bereits gefundene Patterns (bis 7 Zeichen, konfigurierbar) im `found_keys/` Ordner:
 
 - Beim Start werden alle vorhandenen Dateien gescannt
 - Bereits gefundene Patterns werden übersprungen
@@ -155,15 +156,45 @@ Bereits gefunden (werden übersprungen): 9
   -> 1337, ACAB, BABE, BEEF, CAFE, DEAD, DEED, FADE, FEED
 ```
 
+## Live-Statistiken
+
+Während der Suche zeigt das Script detaillierte Fortschritts-Updates:
+
+```
+Worker 0: 300,000 Keys geprüft | Total: 1,200,000 | Gefunden: 3 | Session: [ABC123, C0DED, FACE]
+```
+
+**Anzeige-Elemente:**
+- **Worker N**: Welcher CPU-Kern arbeitet
+- **Keys geprüft**: Anzahl der von diesem Worker geprüften Keys
+- **Total**: Gesamtanzahl aller geprüften Keys (alle Worker)
+- **Gefunden**: Anzahl gefundener Matches in dieser Session
+- **Session**: Liste der in dieser Session gefundenen Patterns (alphabetisch sortiert)
+
+**Bei Session-Ende:**
+```
+======================================================================
+Suche beendet!
+Geprüfte Keys: 5,234,567
+Gefundene Matches: 5
+Gefundene Patterns in dieser Session: BABE, C0DE, DEAD, FACE, FEED
+======================================================================
+```
+
 ## Performance
 
 Die Geschwindigkeit hängt von deiner CPU ab. Typische Werte:
 
-- 4 Cores: ~40.000 - 60.000 Keys/Sekunde
-- 8 Cores: ~80.000 - 120.000 Keys/Sekunde
-- 16 Cores: ~160.000 - 240.000 Keys/Sekunde
+- 4 Cores: ~100.000 - 150.000 Keys/Sekunde
+- 8 Cores: ~200.000 - 300.000 Keys/Sekunde
+- 16 Cores: ~400.000 - 600.000 Keys/Sekunde
 
 **Hinweis:** Je länger das Pattern, desto seltener wird ein Match gefunden!
+
+**Beispiel-Suche:**
+- 1 Million Keys in ~10 Sekunden (4 Cores)
+- Patterns mit 4 Zeichen: Durchschnittlich 1 Match pro ~10-20 Millionen Keys
+- Patterns mit 6 Zeichen: Sehr selten, kann Stunden bis Tage dauern
 
 ## Wahrscheinlichkeiten
 
