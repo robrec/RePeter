@@ -1,4 +1,4 @@
-# 🔍 BreMesh MeshCore PubKey Searcher
+# BreMesh MeshCore PubKey Searcher
 
 Ein hochperformantes Python-Script zur Generierung von Ed25519-Schlüsselpaaren mit benutzerdefinierten Public-Key-Präfixen.
 
@@ -6,7 +6,7 @@ Perfekt für einprägsame Keys für **MeshCore** Repeater!
 
 ![Interface](interface.png)
 
-## ✨ Features
+## Features
 
 ### Performance
 
@@ -20,13 +20,13 @@ Perfekt für einprägsame Keys für **MeshCore** Repeater!
 - **Alternate Screen Buffer** - Professionelle Vollbild-Anzeige wie bei `htop`
 - **Farbcodierte Anzeige** - Übersichtliche Darstellung aller Statistiken
 - **CPU-Auslastungsanzeige** - Grafische Fortschrittsanzeige mit Farbcodierung
-- **WoW-Style Seltenheits-Indikatoren** - Farben je nach Pattern-Länge:
-  - `•` Grau (#9D9D9D) - ≤5 Zeichen (Poor)
-  - `•` Weiß (#FFFFFF) - 6 Zeichen (Common)
-  - `•` Grün (#1EFF00) - 7 Zeichen (Uncommon)
-  - `✨` Blau (#0070DD) - 8 Zeichen (Rare)
-  - `⭐` Lila (#A335EE) - 9 Zeichen (Epic)
-  - `⭐💎` Orange (#FF8000) - 10+ Zeichen (Artifact)
+- **Seltenheits-Indikatoren** - Farben je nach Pattern-Länge:
+  - `•` Grau (#9D9D9D) - ≤5 Zeichen
+  - `•` Weiß (#FFFFFF) - 6 Zeichen
+  - `•` Grün (#1EFF00) - 7 Zeichen
+  - `✨` Blau (#0070DD) - 8 Zeichen
+  - `⭐` Lila (#A335EE) - 9 Zeichen
+  - `⭐💎` Orange (#FF8000) - 10+ Zeichen
 - **Fortschrittsanzeige** - Zeigt gefundene/gesuchte Patterns pro Längen-Kategorie
 
 ### Steuerung
@@ -51,7 +51,7 @@ Perfekt für einprägsame Keys für **MeshCore** Repeater!
 - **Persistente Speicherung** - Gefundene Keys werden sofort gespeichert
 - **JSON-Export** - MeshCore-kompatibles Import-Format
 
-## 📦 Installation
+## Installation
 
 ### Voraussetzungen
 
@@ -64,7 +64,7 @@ Perfekt für einprägsame Keys für **MeshCore** Repeater!
 pip install cryptography rich psutil
 ```
 
-## 🚀 Verwendung
+## Verwendung
 
 ### Schnellstart
 
@@ -94,7 +94,7 @@ python key_searcher.py --patterns-file meine_patterns.txt
 python key_searcher.py --patterns-file searchFor.txt --max-pattern-length 7 --output-dir found_keys
 ```
 
-## ⚙️ Konfiguration
+## Konfiguration
 
 ### Command Line Argumente
 
@@ -145,7 +145,7 @@ BREMESH
 - Zeilen mit `#` sind Kommentare
 - Leere Zeilen werden ignoriert
 
-## 🎮 Bedienung
+## Bedienung
 
 ### Während der Suche
 
@@ -156,37 +156,15 @@ BREMESH
 | `Ctrl+C` | Suche beenden    |
 
 ### Anzeige-Elemente
+![Interface](interface.png)
 
 ```
-╭──────────────────────── 🔍 BreMesh MeshCore PubKey Searcher ─────────────────────────╮
-│                                                                                       │
-│   Patterns:  148                              Workers:  16                            │
-│   Already Found:  48                                                                  │
-│   ────────────────────────────────────────                                            │
-│   Status:  ▶ RUNNING                                                                  │
-│   Session:  12.5M keys                       All-Time:  151.7M keys                   │
-│   Found:  3 matches                          Speed:  42.1k keys/s                     │
-│   Duration:  4m 56s                          CPU:  ████████████████████ 100%          │
-│                                                                                       │
-│   ────────────────────────────────────────                                            │
-│   Time Estimates:                            Remaining:  97 patterns                  │
-│   5 chars:  26s  (5/7)                       6 chars:  7m  (12/43)                    │
-│   7 chars:  1.9h  (28/38)                    8 chars:  1.3d  (2/32)                   │
-│   9 chars:  20.3d  (1/19)                    10+ chars:  324.1d  (0/9)                │
-│                                                                                       │
-│   ────────────────────────────────────────                                            │
-│   Found Keys:                                                                         │
-│   • B9001            B9001A567890ABCDEF...                                            │
-│   • B666666          B666666567890ABCDE...                                            │
-│   ✨ B6000000        B6000000567890ABCD...                                            │
-│   ⭐ B60000000       B60000000567890ABC...                                            │
-│                                                                                       │
-╰────────────────────── Ctrl+C to stop • P to pause • R to resume ─────────────────────╯
+
 ```
 
 **Legende Time Estimates:** `Zeitschätzung (gefunden/gesucht)`
 
-## 📁 Ausgabe-Format
+## Ausgabe-Format
 
 Gefundene Keys werden im Verzeichnis `found_keys/` gespeichert:
 
@@ -216,7 +194,7 @@ MeshCore Import Format:
 }
 ```
 
-## 📊 Zeitschätzungen
+## Zeitschätzungen
 
 Die Wahrscheinlichkeit, ein bestimmtes Präfix zu finden:
 
@@ -230,7 +208,7 @@ Die Wahrscheinlichkeit, ein bestimmtes Präfix zu finden:
 | 9 Zeichen      | 68.719.476.736    | ~26 Tage       |
 | 10 Zeichen     | 1.099.511.627.776 | ~1,2 Jahre     |
 
-## 🔧 Technische Details
+## Technische Details
 
 ### Architektur
 
@@ -252,14 +230,14 @@ Die Wahrscheinlichkeit, ein bestimmtes Präfix zu finden:
 - `rich` - Terminal-UI Framework
 - `psutil` - CPU-Auslastung
 
-## 📝 Lizenz
+## Lizenz
 
 MIT License
 
-## 🤝 Beitragen
+## Beitragen
 
 Pull Requests sind willkommen! Für größere Änderungen bitte erst ein Issue erstellen.
 
 ---
 
-**Viel Erfolg bei der Suche nach dem perfekten Key! 🔑**
+**Viel Erfolg bei der Suche nach dem perfekten Key!**

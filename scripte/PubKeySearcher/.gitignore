@@ -1,5 +1,5 @@
 # Verhindert das versehentliche Hochladen von gefundenen Private Keys
-found_keys/
+found_keys/*
 *.pem
 *.key
 searchForPrivate.txt
