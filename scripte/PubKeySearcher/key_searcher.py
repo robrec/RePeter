@@ -19,9 +19,10 @@ import time
 try:
     from cryptography.hazmat.primitives.asymmetric import ed25519
     from cryptography.hazmat.primitives import serialization
-    from rich.console import Console
+    from rich.console import Console, Group
     from rich.panel import Panel
     from rich.table import Table
+    from rich.progress import Progress, BarColumn, TextColumn, TaskProgressColumn
     import psutil
 except ImportError as e:
     print(f"ERROR: Required library not installed: {e}")
@@ -30,8 +31,9 @@ except ImportError as e:
 
 
 class KeySearcher:
-    def __init__(self, patterns_file: str = "searchFor.txt", output_dir: str = "found_keys", max_pattern_length: int = 7, single_pattern: str = None):
+    def __init__(self, patterns_file: str = "searchFor.txt", output_dir: str = "found_keys", max_pattern_length: int = 7, single_pattern: str = None, verbose: bool = False):
         self.single_pattern_mode = single_pattern is not None
+        self.verbose = verbose
         if single_pattern:
             self.patterns = {single_pattern.upper()}
             print(f"Searching for single pattern: {single_pattern.upper()}")
@@ -129,6 +131,10 @@ class KeySearcher:
         is_paused = False
         # Track found patterns by length category - start with existing counts
         found_by_len = {k: v for k, v in startup_info['existing_counts'].items()}
+        # Track remaining pattern lengths for ETA calculation
+        remaining_lengths = list(startup_info['remaining_pattern_lengths'])
+        last_find_time = start_time  # Time of last found key (or start)
+        found_credits = 0.0  # Each found key adds 1.0 (100%) credit
         
         def build_panel():
             """Build the combined stats panel"""
@@ -223,14 +229,150 @@ class KeySearcher:
                 "[dim]  10+ chars:[/dim]", f"[{COLOR_ARTIFACT}]{KeySearcher.estimate_time(10, keys_per_sec)}[/{COLOR_ARTIFACT}]  [dim]({fbl[10]}/{pc[10]})[/dim]"
             )
             
-            # Found keys section with WoW-style rarity indicators
+            # Build main panel
+            main_panel = Panel(
+                content,
+                title="[bold bright_white on blue] 🔍 BreMesh MeshCore PubKey Searcher [/bold bright_white on blue]",
+                subtitle="[dim white]Ctrl+C to stop • P to pause • R to resume[/dim white]",
+                border_style="bright_blue",
+                padding=(1, 2)
+            )
+            
+            # Calculate ETA for next key based on remaining patterns
+            # Combined probability = sum(1/16^L for each remaining pattern)
+            if keys_per_sec > 0 and remaining_lengths:
+                combined_prob = sum(1.0 / (16 ** plen) for plen in remaining_lengths)
+                if combined_prob > 0:
+                    expected_keys = 1.0 / combined_prob
+                    expected_seconds = expected_keys / keys_per_sec
+                    time_since_last = datetime.now().timestamp() - last_find_time
+                    
+                    # Progress can exceed 100% or go negative (if key found early)
+                    raw_progress = (time_since_last / expected_seconds) if expected_seconds > 0 else 0
+                    progress = raw_progress - found_credits  # Can be negative!
+                    
+                    # Bar is capped at 0-100%, but percentage display can go outside
+                    bar_progress = max(0.0, min(1.0, progress))
+                    
+                    # Color changes based on progress
+                    if progress < 0:
+                        bar_color = "bright_green"  # Ahead of schedule!
+                    elif progress < 0.5:
+                        bar_color = "bright_cyan"
+                    elif progress < 1.0:
+                        bar_color = "bright_yellow"
+                    else:
+                        bar_color = "bright_green"  # Overdue - should find soon!
+                    
+                    eta_str = KeySearcher.format_time(expected_seconds)
+                    elapsed_str = KeySearcher.format_time(time_since_last)
+                    percent_str = f"{progress * 100:.0f}%"
+                    
+                    # Dynamic progress bar - use console width minus panel padding/border
+                    terminal_width = console.size.width
+                    bar_width = max(20, terminal_width - 8)  # -8 for panel borders and padding
+                    filled = int(bar_progress * bar_width)  # Bar capped at 100%
+                    
+                    # Build progress bar with percentage in the middle
+                    center_pos = bar_width // 2 - len(percent_str) // 2
+                    bar_chars = []
+                    for i in range(bar_width):
+                        if i >= center_pos and i < center_pos + len(percent_str):
+                            # Character from percent string
+                            char_idx = i - center_pos
+                            char = percent_str[char_idx]
+                            if i < filled:
+                                bar_chars.append(f"[bold black on {bar_color}]{char}[/bold black on {bar_color}]")
+                            else:
+                                bar_chars.append(f"[bold {bar_color}]{char}[/bold {bar_color}]")
+                        else:
+                            # Bar character
+                            if i < filled:
+                                bar_chars.append(f"[{bar_color}]█[/{bar_color}]")
+                            else:
+                                bar_chars.append("[dim]░[/dim]")
+                    
+                    progress_bar = "".join(bar_chars)
+                    
+                    # Progress panel content
+                    progress_text = f"[bold bright_magenta]Next Key ETA:[/bold bright_magenta] [bold white]{eta_str}[/bold white]    [dim]Elapsed:[/dim] [dim white]{elapsed_str}[/dim white]\n{progress_bar}"
+                    
+                    # Show formula only in verbose mode
+                    if startup_info.get('verbose', False):
+                        from collections import Counter
+                        len_counts = Counter(remaining_lengths)
+                        formula_parts = []
+                        for length in sorted(len_counts.keys()):
+                            count = len_counts[length]
+                            formula_parts.append(f"{count}/16^{length}")
+                        formula_str = f"[dim]ETA = 1 / (({' + '.join(formula_parts)}) × {KeySearcher.format_number(keys_per_sec)}) = {eta_str}[/dim]"
+                        progress_text += f"\n{formula_str}"
+                    
+                    progress_panel = Panel(
+                        progress_text,
+                        border_style="bright_magenta",
+                        padding=(0, 2)
+                    )
+                    
+                    # Build found keys panel (third panel)
+                    if found_keys_list:
+                        found_content = Table.grid(padding=(0, 2))
+                        found_content.add_column(justify="left")
+                        found_content.add_column(justify="left")
+                        
+                        for pattern, preview in found_keys_list[-5:]:
+                            pattern_len = len(pattern)
+                            # WoW-style rarity indicators based on pattern length
+                            if pattern_len >= 10:
+                                symbol = f"[{COLOR_ARTIFACT}]⭐💎[/{COLOR_ARTIFACT}]"
+                                pattern_style = f"[bold {COLOR_ARTIFACT}]"
+                                end_style = f"[/bold {COLOR_ARTIFACT}]"
+                            elif pattern_len >= 9:
+                                symbol = f"[{COLOR_EPIC}]⭐[/{COLOR_EPIC}]"
+                                pattern_style = f"[bold {COLOR_EPIC}]"
+                                end_style = f"[/bold {COLOR_EPIC}]"
+                            elif pattern_len >= 8:
+                                symbol = f"[{COLOR_RARE}]✨[/{COLOR_RARE}]"
+                                pattern_style = f"[bold {COLOR_RARE}]"
+                                end_style = f"[/bold {COLOR_RARE}]"
+                            elif pattern_len >= 7:
+                                symbol = f"[{COLOR_UNCOMMON}]•[/{COLOR_UNCOMMON}]"
+                                pattern_style = f"[{COLOR_UNCOMMON}]"
+                                end_style = f"[/{COLOR_UNCOMMON}]"
+                            elif pattern_len >= 6:
+                                symbol = f"[{COLOR_COMMON}]•[/{COLOR_COMMON}]"
+                                pattern_style = f"[{COLOR_COMMON}]"
+                                end_style = f"[/{COLOR_COMMON}]"
+                            else:
+                                symbol = f"[{COLOR_POOR}]•[/{COLOR_POOR}]"
+                                pattern_style = f"[{COLOR_POOR}]"
+                                end_style = f"[/{COLOR_POOR}]"
+                            
+                            padded_pattern = pattern.ljust(16)
+                            found_content.add_row(
+                                f"{symbol} {pattern_style}{padded_pattern}{end_style}", 
+                                f"[dim]{preview}[/dim]"
+                            )
+                        
+                        found_panel = Panel(
+                            found_content,
+                            title=f"[bold green]🔑 Found Keys ({len(found_keys_list)})[/bold green]",
+                            border_style="green",
+                            padding=(0, 2)
+                        )
+                        
+                        return Group(main_panel, progress_panel, found_panel)
+                    
+                    return Group(main_panel, progress_panel)
+            
+            # No progress bar case - but might have found keys
             if found_keys_list:
-                content.add_row("", "", "", "")
-                content.add_row("[dim]" + "─" * 40 + "[/dim]", "", "", "")
-                content.add_row("[bold green]Found Keys:[/bold green]", "", "", "")
+                found_content = Table.grid(padding=(0, 2))
+                found_content.add_column(justify="left")
+                found_content.add_column(justify="left")
+                
                 for pattern, preview in found_keys_list[-5:]:
                     pattern_len = len(pattern)
-                    # WoW-style rarity indicators based on pattern length
                     if pattern_len >= 10:
                         symbol = f"[{COLOR_ARTIFACT}]⭐💎[/{COLOR_ARTIFACT}]"
                         pattern_style = f"[bold {COLOR_ARTIFACT}]"
@@ -256,21 +398,22 @@ class KeySearcher:
                         pattern_style = f"[{COLOR_POOR}]"
                         end_style = f"[/{COLOR_POOR}]"
                     
-                    # Pad pattern for alignment
                     padded_pattern = pattern.ljust(16)
-                    content.add_row(
-                        f"  {symbol} {pattern_style}{padded_pattern}{end_style}", 
-                        f"[dim]{preview}...[/dim]", 
-                        "", ""
+                    found_content.add_row(
+                        f"{symbol} {pattern_style}{padded_pattern}{end_style}", 
+                        f"[dim]{preview}[/dim]"
                     )
+                
+                found_panel = Panel(
+                    found_content,
+                    title=f"[bold green]🔑 Found Keys ({len(found_keys_list)})[/bold green]",
+                    border_style="green",
+                    padding=(0, 2)
+                )
+                
+                return Group(main_panel, found_panel)
             
-            return Panel(
-                content,
-                title="[bold bright_white on blue] 🔍 BreMesh MeshCore PubKey Searcher [/bold bright_white on blue]",
-                subtitle="[dim white]Ctrl+C to stop • P to pause • R to resume[/dim white]",
-                border_style="bright_blue",
-                padding=(1, 2)
-            )
+            return main_panel
         
         try:
             # Use Live with screen=True for flicker-free updates
@@ -291,7 +434,7 @@ class KeySearcher:
                             last_found = msg.get('found', last_found)
                             
                             if 'new_key' in msg:
-                                found_keys_list.append((msg['new_key']['pattern'], msg['new_key']['key_preview']))
+                                found_keys_list.append((msg['new_key']['pattern'], msg['new_key']['public_key']))
                                 # Update found count by length
                                 plen = len(msg['new_key']['pattern'])
                                 if plen <= 5:
@@ -300,6 +443,12 @@ class KeySearcher:
                                     found_by_len[10] += 1
                                 else:
                                     found_by_len[plen] += 1
+                                # Remove pattern from remaining ONLY if it's <= max_pattern_length
+                                # Patterns > max_pattern_length can be found multiple times
+                                if plen <= startup_info['max_pattern_length'] and plen in remaining_lengths:
+                                    remaining_lengths.remove(plen)
+                                # Add 100% credit for found key (reduces displayed progress by 100%)
+                                found_credits += 1.0
                             
                             live.update(build_panel())
                     
@@ -352,7 +501,7 @@ class KeySearcher:
                         display_queue.put({
                             'total': shared_counter.value,
                             'found': shared_found.value,
-                            'new_key': {'pattern': pattern, 'key_preview': public_hex[:16]}
+                            'new_key': {'pattern': pattern, 'public_key': public_hex}
                         })
                         
                         # In single pattern mode, signal all workers to stop
@@ -441,6 +590,16 @@ class KeySearcher:
             else:
                 existing_counts[plen] += 1
         
+        # Build list of remaining pattern lengths (excluding already found)
+        # Patterns > max_pattern_length are ALWAYS included (can be found multiple times)
+        remaining_pattern_lengths = []
+        existing_upper = {ep.upper() for ep in existing_patterns}
+        for p in self.patterns:
+            plen = len(p)
+            # Include if: not found yet OR pattern is longer than max_pattern_length (repeatable)
+            if p.upper() not in existing_upper or plen > self.max_pattern_length:
+                remaining_pattern_lengths.append(plen)
+        
         # Prepare startup info for display process
         startup_info = {
             'num_patterns': len(self.patterns),
@@ -449,7 +608,9 @@ class KeySearcher:
             'num_existing': len(existing_patterns),
             'existing_patterns': ', '.join(sorted(existing_patterns)) if existing_patterns else '',
             'pattern_counts': pattern_counts,
-            'existing_counts': existing_counts
+            'existing_counts': existing_counts,
+            'remaining_pattern_lengths': remaining_pattern_lengths,
+            'verbose': self.verbose
         }
         
         # Shared state
@@ -593,9 +754,10 @@ class KeySearcher:
 def main():
     parser = argparse.ArgumentParser(description='Ed25519 Public Key Pattern Searcher for MeshCore')
     parser.add_argument('--max-pattern-length', type=int, default=int(os.getenv('MAX_PATTERN_LENGTH', '7')))
-    parser.add_argument('--patterns-file', type=str, default=os.getenv('PATTERNS_FILE', 'searchFor.txt'))
+    parser.add_argument('--patterns-file', '-f', type=str, default=os.getenv('PATTERNS_FILE', 'searchFor.txt'))
     parser.add_argument('--output-dir', type=str, default='found_keys')
     parser.add_argument('--pattern', '-p', type=str, help='Search for a single pattern instead of using patterns file')
+    parser.add_argument('--verbose', '-v', action='store_true', help='Show detailed ETA calculation formula')
     
     args = parser.parse_args()
     
@@ -603,7 +765,8 @@ def main():
         patterns_file=args.patterns_file,
         output_dir=args.output_dir,
         max_pattern_length=args.max_pattern_length,
-        single_pattern=args.pattern
+        single_pattern=args.pattern,
+        verbose=args.verbose
     )
     searcher.run()
 

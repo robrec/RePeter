@@ -18,15 +18,10 @@ Perfekt für einprägsame Keys für **MeshCore** Repeater!
 
 - **Rich Live Display** - Flackerfreie Terminal-UI mit dem `rich` Framework
 - **Alternate Screen Buffer** - Professionelle Vollbild-Anzeige wie bei `htop`
+- **Drei-Panel-Layout** - Hauptstatistiken, ETA-Progressbar, gefundene Keys
 - **Farbcodierte Anzeige** - Übersichtliche Darstellung aller Statistiken
 - **CPU-Auslastungsanzeige** - Grafische Fortschrittsanzeige mit Farbcodierung
-- **Seltenheits-Indikatoren** - Farben je nach Pattern-Länge:
-  - `•` Grau (#9D9D9D) - ≤5 Zeichen
-  - `•` Weiß (#FFFFFF) - 6 Zeichen
-  - `•` Grün (#1EFF00) - 7 Zeichen
-  - `✨` Blau (#0070DD) - 8 Zeichen
-  - `⭐` Lila (#A335EE) - 9 Zeichen
-  - `⭐💎` Orange (#FF8000) - 10+ Zeichen
+- **Seltenheits-Indikatoren** - Farbige Markierung je nach Pattern-Länge
 - **Fortschrittsanzeige** - Zeigt gefundene/gesuchte Patterns pro Längen-Kategorie
 
 ### Steuerung
@@ -43,11 +38,14 @@ Perfekt für einprägsame Keys für **MeshCore** Repeater!
 - **All-Time-Stats** - Gesamtzahl geprüfter Keys über alle Sessions (persistent)
 - **Zeitschätzungen** - Berechnete Wahrscheinlichkeiten mit Fortschritt (gefunden/gesucht)
 - **Remaining Counter** - Zeigt verbleibende Patterns insgesamt und pro Kategorie
+- **Next Key ETA** - Mathematische Schätzung bis zum nächsten Fund mit dynamischem Progressbar
+- **Verbose Mode** - Zeigt die ETA-Berechnungsformel mit `-v` Flag
 
 ### Verwaltung
 
 - **Pattern-Datei** - Externe Musterliste für einfache Anpassung
-- **Duplikat-Erkennung** - Verhindert doppelte Funde (konfigurierbare Länge)
+- **Duplikat-Erkennung** - Verhindert doppelte Funde für kurze Patterns (≤7 Zeichen)
+- **Mehrfach-Funde** - Patterns >7 Zeichen können beliebig oft gefunden werden
 - **Persistente Speicherung** - Gefundene Keys werden sofort gespeichert
 - **JSON-Export** - MeshCore-kompatibles Import-Format
 
@@ -85,13 +83,21 @@ Das Script beendet sich automatisch sobald das Pattern gefunden wurde.
 ### Mit eigener Pattern-Datei
 
 ```bash
+python key_searcher.py -f meine_patterns.txt
+# oder:
 python key_searcher.py --patterns-file meine_patterns.txt
+```
+
+### Mit ETA-Formel (Verbose Mode)
+
+```bash
+python key_searcher.py -v
 ```
 
 ### Alle Optionen
 
 ```bash
-python key_searcher.py --patterns-file searchFor.txt --max-pattern-length 7 --output-dir found_keys
+python key_searcher.py -f searchFor.txt --max-pattern-length 7 --output-dir found_keys -v
 ```
 
 ## Konfiguration
@@ -100,10 +106,11 @@ python key_searcher.py --patterns-file searchFor.txt --max-pattern-length 7 --ou
 
 | Argument                 | Beschreibung                             | Standard          |
 | ------------------------ | ---------------------------------------- | ----------------- |
-| `--pattern`, `-p`    | Einzelnes Pattern suchen (mit Auto-Exit) | -                 |
-| `--patterns-file`      | Pfad zur Pattern-Datei                   | `searchFor.txt` |
-| `--max-pattern-length` | Max. Länge für Duplikat-Erkennung      | `7`             |
-| `--output-dir`         | Ausgabeverzeichnis für gefundene Keys   | `found_keys`    |
+| `--pattern`, `-p`        | Einzelnes Pattern suchen (mit Auto-Exit) | -                 |
+| `--patterns-file`, `-f`  | Pfad zur Pattern-Datei                   | `searchFor.txt`   |
+| `--max-pattern-length`   | Max. Länge für Duplikat-Erkennung        | `7`               |
+| `--output-dir`           | Ausgabeverzeichnis für gefundene Keys    | `found_keys`      |
+| `--verbose`, `-v`        | Zeigt ETA-Berechnungsformel an           | -                 |
 
 ### Umgebungsvariablen
 
@@ -156,13 +163,28 @@ BREMESH
 | `Ctrl+C` | Suche beenden    |
 
 ### Anzeige-Elemente
+
+Das Interface besteht aus drei separaten Panels:
+
+1. **Hauptstatistiken (blauer Rahmen)** - Config, Patterns, Status, Session/All-Time Stats, Time Estimates
+2. **ETA Progressbar (magenta Rahmen)** - Expected/Elapsed Zeit mit dynamischem Fortschrittsbalken
+3. **Found Keys (grüner Rahmen)** - Gefundene Keys mit vollständigem 64-Zeichen Public Key
+
 ![Interface](interface.png)
 
-```
-
-```
-
-**Legende Time Estimates:** `Zeitschätzung (gefunden/gesucht)`
+**Legende:**
+- **Time Estimates:** `Zeitschätzung (gefunden/gesucht)` pro Längen-Kategorie
+- **Next Key ETA:** Mathematisch erwartete Zeit bis zum nächsten Fund basierend auf kombinierter Wahrscheinlichkeit:
+  ```
+  ETA = 1 / ((n1/16^L1 + n2/16^L2 + ...) × keys_per_sec)
+  ```
+- **Progressbar:** Zeigt verstrichene Zeit im Verhältnis zur erwarteten Zeit
+  - Cyan (<50%): unterwegs
+  - Gelb (50-100%): bald erwartet
+  - Grün (>100% oder negativ): überfällig oder früher Fund
+- **Credits System:** Bei jedem gefundenen Key wird der Fortschritt um 100% reduziert
+  - Progress kann negativ werden (Key früher als erwartet gefunden)
+  - Progress >100% bedeutet überfällig
 
 ## Ausgabe-Format
 
