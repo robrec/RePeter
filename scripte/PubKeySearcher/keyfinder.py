@@ -1385,14 +1385,25 @@ class KeySearcher:
         
         except KeyboardInterrupt:
             display_queue.put('STOP')
+            stop_event.set()  # Signal workers to stop
             
+            # Terminate workers gracefully
             for p in processes:
-                p.terminate()
-                p.join()
+                if p.is_alive():
+                    p.terminate()
             
-            display_proc.join(timeout=2)
+            # Wait for all workers to finish with timeout
+            for p in processes:
+                p.join(timeout=1)
+                if p.is_alive():
+                    p.kill()  # Force kill if still alive
+            
+            # Terminate display process
             if display_proc.is_alive():
                 display_proc.terminate()
+                display_proc.join(timeout=2)
+                if display_proc.is_alive():
+                    display_proc.kill()
             
             # Sort regex pattern files before showing summary
             for pattern in self.patterns:
