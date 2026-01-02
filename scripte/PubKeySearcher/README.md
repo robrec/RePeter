@@ -86,50 +86,78 @@ pip install cryptography rich psutil
 ### Quick Start
 
 ```bash
-python key_searcher.py
+python keyfinder.py
 ```
 
 ### Search for Single Pattern (with Auto-Exit)
 
 ```bash
-python key_searcher.py --pattern CAFE
-# or short:
-python key_searcher.py -p BREMESH
+python keyfinder.py CAFE
+# or with flag:
+python keyfinder.py -p BREMESH
 ```
 
 The script automatically exits once the pattern is found.
 
+### Simple Console Output (for Scripts)
+
+For script-friendly output without the Rich UI:
+
+```bash
+# Output only the 128-character private key:
+python keyfinder.py CAFE -osc
+
+# Output the full 192-character key (private + public):
+python keyfinder.py CAFE -oscl
+```
+
+Perfect for automation and piping to other scripts.
+
 ### With Custom Pattern File
 
 ```bash
-python key_searcher.py -f my_patterns.txt
+python keyfinder.py -f my_patterns.txt
 # or:
-python key_searcher.py --patterns-file my_patterns.txt
+python keyfinder.py --patterns-file my_patterns.txt
 ```
 
 ### With ETA Formula (Verbose Mode)
 
 ```bash
-python key_searcher.py -v
+python keyfinder.py -v
+```
+
+### Control Worker Count
+
+```bash
+# Use only 4 CPU cores:
+python keyfinder.py -w 4
+
+# Use all available cores (default):
+python keyfinder.py -w 0
 ```
 
 ### All Options
 
 ```bash
-python key_searcher.py -f searchFor.txt --max-pattern-length 7 --output-dir found_keys -v
+python keyfinder.py -f searchFor.txt -u 7 --output-dir found_keys -w 0 -v
 ```
 
 ## Configuration
 
 ### Command Line Arguments
 
-| Argument                    | Description                            | Default          |
-| --------------------------- | -------------------------------------- | ---------------- |
-| `--pattern`, `-p`       | Search for single pattern (auto-exit)  | -                |
-| `--patterns-file`, `-f` | Path to pattern file                   | `searchFor.txt` |
-| `--max-pattern-length`    | Max length for duplicate detection     | `7`            |
-| `--output-dir`            | Output directory for found keys        | `found_keys`   |
-| `--verbose`, `-v`       | Show ETA calculation formula           | -                |
+| Argument                            | Description                                      | Default          |
+| ----------------------------------- | ------------------------------------------------ | ---------------- |
+| `pattern` (positional)              | Pattern to search for (e.g., CAFE, DEAD, BEEF)   | -                |
+| `-p`, `--pattern-flag`              | Alternative way to specify pattern               | -                |
+| `-u`, `--unique-min`                | Patterns with length <= this value are unique    | `7`              |
+| `-w`, `--workers`                   | Number of worker processes (0 = all cores)       | `0`              |
+| `-f`, `--patterns-file`             | Path to pattern file                             | `searchFor.txt`  |
+| `--output-dir`                      | Output directory for found keys                  | `found_keys`     |
+| `-v`, `--verbose`                   | Show ETA calculation formula                     | -                |
+| `-osc`, `--output-simple-console`   | Simple output: 128-char private key only         | -                |
+| `-oscl`, `--output-simple-console-long` | Simple output: 192-char private+public key   | -                |
 
 ### Environment Variables
 
@@ -139,16 +167,16 @@ Alternatively configurable via environment variables:
 
 ```powershell
 $env:PATTERNS_FILE = "custom_patterns.txt"
-$env:MAX_PATTERN_LENGTH = 8
-python key_searcher.py
+$env:UNIQUE_MIN = 8
+python keyfinder.py
 ```
 
 **Linux/Mac:**
 
 ```bash
 export PATTERNS_FILE=custom_patterns.txt
-export MAX_PATTERN_LENGTH=8
-python key_searcher.py
+export UNIQUE_MIN=8
+python keyfinder.py
 ```
 
 ### Create Pattern File
@@ -338,7 +366,7 @@ The probability of finding a specific prefix:
 
 ### Files
 
-- `key_searcher.py` - Main script
+- `keyfinder.py` - Main script
 - `searchFor.txt` - Default pattern file
 - `.total_stats.json` - Persistent all-time statistics
 - `found_keys/` - Output directory
