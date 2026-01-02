@@ -822,11 +822,14 @@ class KeySearcher:
                         })
                         
                         # Check if regex pattern is complete (all possibilities found)
-                        if pattern in self.pattern_metadata:
-                            total_possible = self.pattern_metadata[pattern]['possibilities']
-                            if shared_found.value >= total_possible:
-                                # All keys found for this regex pattern
-                                stop_event.set()
+                        if pattern in shared_pattern_metadata:
+                            # Update found count for this specific pattern
+                            current_found = len(shared_pattern_metadata[pattern]['found_keys'])
+                            total_possible = shared_pattern_metadata[pattern]['possibilities']
+                            # Check if THIS pattern is complete, not the total
+                            if current_found >= total_possible:
+                                # All keys found for this specific regex pattern - but don't stop if there are other patterns
+                                pass  # Continue searching for other patterns
                         
                         # In single pattern mode (non-regex), signal all workers to stop
                         if single_pattern_mode:
