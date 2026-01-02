@@ -1,9 +1,8 @@
-# BreMesh MeshCore Ed25519 PubKey Prefix Searcher
+# BreMesh MeshCore Ed25519 PubKey Searcher
 
 A high-performance Python script for generating Ed25519 key pairs with custom public key prefixes.
 
 Perfect for memorable keys for **MeshCore** repeaters!
-
 
 ---
 
@@ -163,17 +162,17 @@ python keyfinder.py -f searchFor.txt -u 7 --output-dir found_keys -w 0 -v
 
 ### Command Line Arguments
 
-| Argument                            | Description                                      | Default          |
-| ----------------------------------- | ------------------------------------------------ | ---------------- |
-| `pattern` (positional)              | Pattern to search for (plain or regex)           | -                |
-| `-p`, `--pattern-flag`              | Alternative way to specify pattern               | -                |
-| `-u`, `--unique-min`                | Patterns with length <= this value are unique    | `8` (configurable in script) |
-| `-w`, `--workers`                   | Number of worker processes (0 = all cores)       | `0`              |
-| `-f`, `--patterns-file`             | Path to pattern file                             | `searchFor.txt`  |
-| `--output-dir`                      | Output directory for found keys                  | `found_keys`     |
-| `-v`, `--verbose`                   | Show ETA calculation formula                     | -                |
-| `-osc`, `--output-simple-console`   | Simple output: 128-char private key only         | -                |
-| `-oscl`, `--output-simple-console-long` | Simple output: 192-char private+public key   | -                |
+| Argument                                    | Description                                   | Default                        |
+| ------------------------------------------- | --------------------------------------------- | ------------------------------ |
+| `pattern` (positional)                    | Pattern to search for (plain or regex)        | -                              |
+| `-p`, `--pattern-flag`                  | Alternative way to specify pattern            | -                              |
+| `-u`, `--unique-min`                    | Patterns with length <= this value are unique | `8` (configurable in script) |
+| `-w`, `--workers`                       | Number of worker processes (0 = all cores)    | `0`                          |
+| `-f`, `--patterns-file`                 | Path to pattern file                          | `searchFor.txt`              |
+| `--output-dir`                            | Output directory for found keys               | `found_keys`                 |
+| `-v`, `--verbose`                       | Show ETA calculation formula                  | -                              |
+| `-osc`, `--output-simple-console`       | Simple output: 128-char private key only      | -                              |
+| `-oscl`, `--output-simple-console-long` | Simple output: 192-char private+public key    | -                              |
 
 ### Environment Variables
 
@@ -200,6 +199,7 @@ python keyfinder.py
 Create a text file with one pattern per line:
 
 **Plain Patterns:**
+
 ```
 CAFE
 DEAD
@@ -210,6 +210,7 @@ BREMESH
 ```
 
 **Regex Patterns (see examples below):**
+
 ```
 B[0-9]{3}0000        # 1000 variations
 CA[0-9A]{2}          # 100 variations  
@@ -234,9 +235,11 @@ DEADBEE{1,57}F       # Variable length 8-64 chars
 Instead of creating hundreds of individual pattern files, use **one regex pattern** to match thousands of possibilities:
 
 **Example:** Instead of searching for B0010000, B0020000, B0030000... separately (1000 individual searches), use:
+
 ```
 B[0-9]{3}0000
 ```
+
 This single pattern finds **all 1000 variations** in one search!
 
 ### Basic Character Classes
@@ -300,25 +303,31 @@ Regex patterns use a special file format optimized for large result sets:
 ### Real-World Examples
 
 **Example 1: MeshCore Repeater Range**
+
 ```
 B[0-9]{3}0000
 ```
+
 - Finds: B0000000 to B9990000
 - Total: 1000 keys
 - Use case: Sequential repeater IDs
 
 **Example 2: All Repeated Characters**
+
 ```
 ([0-9A-F])\1{7}
 ```
+
 - Finds: 00000000, 11111111, 22222222, ..., FFFFFFFF
 - Total: 16 keys
 - Use case: Visually distinctive patterns
 
 **Example 3: Variable-Length Pattern**
+
 ```
 DEADBEE{1,57}F
 ```
+
 - Finds: DEADBEEF (8 chars) through DEADBEE...EEF (64 chars)
 - Total: 57 different lengths
 - Use case: One pattern, multiple lengths to maximize find chances
@@ -346,12 +355,12 @@ This setting applies to both plain and regex patterns.
 
 ### During Search
 
-| Key        | Action                                    |
-| ---------- | ----------------------------------------- |
-| `P`      | Pause search                              |
-| `R`      | Resume search                             |
-| `L`      | Limit CPU (~75%, pauses 25% of workers)   |
-| `Ctrl+C` | Stop search                               |
+| Key        | Action                                  |
+| ---------- | --------------------------------------- |
+| `P`      | Pause search                            |
+| `R`      | Resume search                           |
+| `L`      | Limit CPU (~75%, pauses 25% of workers) |
+| `Ctrl+C` | Stop search                             |
 
 ### Display Elements
 
@@ -394,6 +403,7 @@ Found keys are saved in the `found_keys/` directory:
 ### Filename
 
 **Plain Patterns:**
+
 ```
 {pattern}_1.txt
 {pattern}_2.txt  (for duplicates of patterns >unique_min characters)
@@ -402,6 +412,7 @@ Found keys are saved in the `found_keys/` directory:
 Example: `CAFE_1.txt`, `BREMESH_1.txt`, `BREMESH_2.txt`
 
 **Regex Patterns:**
+
 ```
 {pattern}_all.txt
 ```
@@ -511,13 +522,13 @@ The probability of finding a specific prefix:
 
 ### Regex Pattern Examples
 
-| Pattern           | Possibilities | Lengths    | At 30k keys/s (first match) |
-| ----------------- | ------------- | ---------- | --------------------------- |
-| `B[0-9]{3}0000`   | 1,000         | 8 chars    | ~2.4 minutes                |
-| `B[0-9A-F]{1}000000` | 16         | 8 chars    | ~2.3 seconds                |
-| `([0-9A-F])\1{7}` | 16            | 8 chars    | ~2.3 seconds                |
-| `CA[0-9A]{2}`     | 100           | 4 chars    | ~0.2 seconds                |
-| `DEADBEE{1,57}F`  | 57            | 8-64 chars | ~2.3 seconds (for 8-char)   |
+| Pattern                | Possibilities | Lengths    | At 30k keys/s (first match) |
+| ---------------------- | ------------- | ---------- | --------------------------- |
+| `B[0-9]{3}0000`      | 1,000         | 8 chars    | ~2.4 minutes                |
+| `B[0-9A-F]{1}000000` | 16            | 8 chars    | ~2.3 seconds                |
+| `([0-9A-F])\1{7}`    | 16            | 8 chars    | ~2.3 seconds                |
+| `CA[0-9A]{2}`        | 100           | 4 chars    | ~0.2 seconds                |
+| `DEADBEE{1,57}F`     | 57            | 8-64 chars | ~2.3 seconds (for 8-char)   |
 
 **Note:** For variable-length patterns like `DEADBEE{1,57}F`, the ETA varies by length. The 8-char match (DEADBEEF) is most likely to occur first, while longer matches (10+ chars) take exponentially longer.
 
