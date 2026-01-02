@@ -11,10 +11,11 @@ import multiprocessing as mp
 import argparse
 from datetime import datetime
 from pathlib import Path
-from typing import Set
+from typing import Set, Dict, Tuple
 import json
 import threading
 import time
+import re
 
 try:
     from cryptography.hazmat.primitives.asymmetric import ed25519
@@ -29,6 +30,9 @@ except ImportError as e:
     print("Please install with: pip install cryptography rich psutil")
     exit(1)
 
+# Default configuration
+DEFAULT_UNIQUE_MIN = 8  # Patterns with length <= this value are kept unique
+
 
 class KeySearcher:
     # Rarity colors by pattern length
@@ -40,27 +44,190 @@ class KeySearcher:
     COLOR_POOR = "#9D9D9D"       # <=5 chars - Gray
     
     @staticmethod
-    def validate_pattern(pattern: str) -> bool:
-        """Validate that pattern contains only HEX characters (0-9, A-F)"""
-        return all(c in '0123456789ABCDEFabcdef' for c in pattern)
+    def is_regex_pattern(pattern: str) -> bool:
+        """Check if pattern contains regex special characters"""
+        regex_chars = r'.[]*+?{}()|^$\\'
+        return any(c in regex_chars for c in pattern)
     
-    def __init__(self, patterns_file: str = "searchFor.txt", output_dir: str = "found_keys", unique_min: int = 7, single_pattern: str = None, verbose: bool = False, simple_console: bool = False, simple_console_long: bool = False):
-        self.single_pattern_mode = single_pattern is not None
+    @staticmethod
+    def calculate_regex_possibilities(pattern: str) -> int:
+        """Calculate total number of possible keys for a regex pattern"""
+        if not KeySearcher.is_regex_pattern(pattern):
+            return 1  # Plain pattern = 1 possibility
+        
+        # Special case: for patterns with variable-length quantifiers like {1,57}
+        # These represent multiple different patterns (different lengths)
+        # Count the number of different patterns, not combinations
+        
+        # Check for {min,max} quantifiers that create multiple pattern lengths
+        range_quantifiers = re.findall(r'\{(\d+),(\d+)\}', pattern)
+        if range_quantifiers:
+            # For patterns like DEADBEE{1,57}F
+            # This represents 57 different patterns (one for each length)
+            total_patterns = 0
+            for min_val, max_val in range_quantifiers:
+                total_patterns += int(max_val) - int(min_val) + 1
+            if total_patterns > 1:
+                return total_patterns
+        
+        possibilities = 1
+        temp_pattern = pattern
+        
+        # Count character classes [0-9A-F] = 16 possibilities
+        char_classes = re.findall(r'\[[^\]]+\]', pattern)
+        for cc in char_classes:
+            # Count unique chars in character class
+            if '0-9A-F' in cc or '0-9a-f' in cc or 'A-F0-9' in cc:
+                count = 16  # Full HEX range
+            elif '0-9' in cc:
+                count = 10  # Digits only
+            elif 'A-F' in cc or 'a-f' in cc:
+                count = 6  # Letters only
+            else:
+                # Count individual characters
+                chars = cc.replace('[', '').replace(']', '')
+                count = len(set(chars.upper()))
+            
+            # Find quantifiers for this class
+            # Replace the class with a placeholder
+            temp_pattern = temp_pattern.replace(cc, 'X', 1)
+            
+            # Check if followed by quantifier
+            match = re.search(r'X\{(\d+)(?:,(\d*))?\}', temp_pattern)
+            if match:
+                min_count = int(match.group(1))
+                max_count = int(match.group(2)) if match.group(2) else min_count
+                # Use minimum count for calculation
+                possibilities *= (count ** min_count)
+                temp_pattern = temp_pattern.replace(match.group(0), '', 1)
+            else:
+                possibilities *= count
+        
+        return possibilities
+    
+    @staticmethod
+    def validate_pattern(pattern: str) -> Tuple[bool, str, int]:
+        """Validate pattern - supports both plain HEX and regex patterns.
+        Returns: (is_valid, error_message, effective_length)
+        """
+        if not pattern:
+            return False, "Pattern is empty", 0
+        
+        # Check if it's a regex pattern
+        if KeySearcher.is_regex_pattern(pattern):
+            try:
+                # Try to compile the regex
+                compiled = re.compile(pattern, re.IGNORECASE)
+                
+                # Validate that the pattern only contains HEX-compatible elements
+                # Check for character classes containing only HEX chars
+                # Remove valid HEX patterns to see if anything invalid remains
+                temp_check = pattern
+                # Remove HEX character classes
+                temp_check = re.sub(r'\[0-9A-Fa-f\-\]]+', '', temp_check)
+                # Remove HEX literals
+                temp_check = re.sub(r'[0-9A-Fa-f]', '', temp_check)
+                # Remove valid regex syntax
+                temp_check = re.sub(r'[\{\}\*\+\?\|\(\)\^\\]', '', temp_check)
+                # Remove numbers (for quantifiers)
+                temp_check = re.sub(r'\d+', '', temp_check)
+                
+                # If anything remains that's not whitespace/comma, it might be invalid
+                remaining = temp_check.replace(',', '').strip()
+                if remaining and any(c.isalpha() and c not in 'xXdDwWsS' for c in remaining):
+                    return False, "Regex pattern contains non-HEX elements", 0
+                
+                # Calculate effective length (minimum match length)
+                # For regex patterns, calculate the actual minimum match length
+                effective_length = 0
+                
+                # Remove character classes and count fixed characters
+                temp_pattern = pattern
+                # Replace character classes like [0-9A-F] with single placeholder
+                temp_pattern = re.sub(r'\[[^\]]+\]', 'X', temp_pattern)
+                # Replace quantifiers {n} with n repetitions of previous char
+                for match in re.finditer(r'(.?)\{(\d+)(?:,\d*)?\}', temp_pattern):
+                    char_before = match.group(1) if match.group(1) else 'X'
+                    count = int(match.group(2))
+                    effective_length += count
+                    # Remove the quantifier from pattern
+                    temp_pattern = temp_pattern.replace(match.group(0), '', 1)
+                
+                # Count remaining characters (fixed chars and placeholders)
+                effective_length += len(re.sub(r'[^A-Z0-9X]', '', temp_pattern))
+                
+                effective_length = max(1, effective_length)
+                
+                return True, "", effective_length
+                
+            except re.error as e:
+                return False, f"Invalid regex pattern: {e}", 0
+        else:
+            # Plain HEX pattern
+            if not all(c in '0123456789ABCDEFabcdef' for c in pattern):
+                return False, "Pattern contains non-HEX characters (allowed: 0-9, A-F)", 0
+            return True, "", len(pattern)
+    
+    def __init__(self, patterns_file: str = "searchFor.txt", output_dir: str = "found_keys", unique_min: int = DEFAULT_UNIQUE_MIN, single_pattern: str = None, verbose: bool = False, simple_console: bool = False, simple_console_long: bool = False):
+        self.is_regex_search = single_pattern and self.is_regex_pattern(single_pattern)
+        # single_pattern_mode = auto-exit after first find (only for fixed patterns, not regex)
+        self.single_pattern_mode = single_pattern is not None and not self.is_regex_search
         self.verbose = verbose
         self.simple_console = simple_console or simple_console_long
+        self.pattern_regexes: Dict[str, re.Pattern] = {}  # Store compiled regex patterns
         self.simple_console_long = simple_console_long
         self.patterns_file = patterns_file  # Store for hot-reload
+        self.pattern_metadata = {}  # Store pattern metadata (effective_length, possibilities)
+        
+        # Set output_dir early so it's available for load_existing_regex_keys
+        self.output_dir = Path(output_dir)
+        self.output_dir.mkdir(exist_ok=True)
+        
         if single_pattern:
-            if not self.validate_pattern(single_pattern):
-                print(f"ERROR: Pattern '{single_pattern}' contains invalid characters!")
-                print("Only HEX characters are allowed: 0-9, A-F")
+            is_valid, error_msg, effective_len = self.validate_pattern(single_pattern)
+            if not is_valid:
+                print(f"\n❌ ERROR: {error_msg}")
+                print("Allowed: HEX characters (0-9, A-F) or regex patterns\n")
                 exit(1)
-            self.patterns = {single_pattern.upper()}
+            
+            pattern_key = single_pattern.upper() if not self.is_regex_pattern(single_pattern) else single_pattern
+            self.patterns = {pattern_key}
+            
+            # Store metadata
+            possibilities = self.calculate_regex_possibilities(single_pattern)
+            self.pattern_metadata[pattern_key] = {
+                'effective_length': effective_len,
+                'possibilities': possibilities,
+                'found_keys': set()  # Track found keys for this pattern
+            }
+            
+            # Load already found keys if this is a regex pattern
+            if self.is_regex_pattern(single_pattern) and possibilities > 1:
+                existing_keys = self.load_existing_regex_keys(single_pattern)
+                if existing_keys:
+                    self.pattern_metadata[pattern_key]['found_keys'] = existing_keys
+                    # Check if all possibilities are found
+                    if len(existing_keys) >= possibilities:
+                        console = Console()
+                        safe_name = re.sub(r'[^\w]', '_', single_pattern)
+                        console.print(f"\n✅ [bold green]All {possibilities} keys for pattern '{single_pattern}' already found![/bold green]")
+                        console.print(f"   [dim]File: found_keys/{safe_name}_all.txt[/dim]\n")
+                        exit(0)
+                    else:
+                        console = Console()
+                        percent = len(existing_keys) / possibilities * 100
+                        console.print(f"\n[bold yellow]Continuing search for pattern '{single_pattern}'[/bold yellow]")
+                        console.print(f"   [dim]Already found: {len(existing_keys)}/{possibilities} ({percent:.1f}%)[/dim]")
+                        console.print(f"   [dim]Searching for remaining: {possibilities - len(existing_keys)} keys[/dim]\n")
+                        import time
+                        time.sleep(2)  # Pause so user can see the message
+            
+            # Compile if regex
+            if self.is_regex_pattern(single_pattern):
+                self.pattern_regexes[pattern_key] = re.compile(single_pattern, re.IGNORECASE)
         else:
             self.patterns = self.load_patterns(patterns_file)
         
-        self.output_dir = Path(output_dir)
-        self.output_dir.mkdir(exist_ok=True)
         self.unique_min = unique_min
         self.stats_file = Path(".total_stats.json")
         self.total_all_time = self.load_total_stats()
@@ -75,11 +242,36 @@ class KeySearcher:
                     line_num += 1
                     line = line.strip()
                     if line and not line.startswith('#'):
-                        if not self.validate_pattern(line):
+                        is_valid, error_msg, effective_len = self.validate_pattern(line)
+                        if not is_valid:
                             print(f"ERROR: Invalid pattern '{line}' on line {line_num} in {filename}")
-                            print("Only HEX characters are allowed: 0-9, A-F")
+                            print(f"       {error_msg}")
                             exit(1)
-                        patterns.add(line)
+                        
+                        # Store uppercase for plain patterns, original for regex
+                        pattern_key = line.upper() if not self.is_regex_pattern(line) else line
+                        patterns.add(pattern_key)
+                        
+                        # Store metadata for all patterns
+                        possibilities = self.calculate_regex_possibilities(line)
+                        self.pattern_metadata[pattern_key] = {
+                            'effective_length': effective_len,
+                            'possibilities': possibilities,
+                            'found_keys': set()
+                        }
+                        
+                        # Load existing keys for regex patterns
+                        if self.is_regex_pattern(line) and possibilities > 1:
+                            existing_keys = self.load_existing_regex_keys(line)
+                            if existing_keys:
+                                self.pattern_metadata[pattern_key]['found_keys'] = existing_keys
+                        
+                        # Compile regex patterns
+                        if self.is_regex_pattern(line):
+                            try:
+                                self.pattern_regexes[pattern_key] = re.compile(line, re.IGNORECASE)
+                            except re.error:
+                                pass  # Already validated, but just in case
         except FileNotFoundError:
             print(f"ERROR: {filename} not found!")
             exit(1)
@@ -164,8 +356,8 @@ class KeySearcher:
         found_content.add_column(justify="left")
         found_content.add_column(justify="left")
         
-        for pattern, preview in found_keys_list[-5:]:
-            symbol, pattern_style, end_style = KeySearcher.get_rarity_style(len(pattern))
+        for pattern, preview, effective_len in found_keys_list[-5:]:
+            symbol, pattern_style, end_style = KeySearcher.get_rarity_style(effective_len)
             padded_pattern = pattern.ljust(16)
             found_content.add_row(
                 f"{symbol} {pattern_style}{padded_pattern}{end_style}", 
@@ -188,6 +380,8 @@ class KeySearcher:
         found_by_len = {k: v for k, v in startup_info['existing_counts'].items()}
         # Track remaining pattern lengths for ETA calculation
         remaining_lengths = list(startup_info['remaining_pattern_lengths'])
+        # Track remaining possibilities per pattern for accurate ETA
+        pattern_metadata = {p: dict(meta) for p, meta in startup_info['pattern_metadata'].items()}
         last_find_time = start_time  # Time of last found key (or start)
         
         def build_panel():
@@ -265,10 +459,11 @@ class KeySearcher:
             )
             
             # Remaining patterns to find (total and by length)
-            # found_by_len already includes existing + session found
+            # For regex patterns, we need to count total possible keys, not pattern count
             total_found = sum(found_by_len.values())
-            remaining = startup_info['num_patterns'] - total_found
             pc = startup_info['pattern_counts']
+            total_possible = sum(pc.values())  # Total possible keys across all patterns
+            remaining = total_possible - total_found
             # Format: found/total for each category
             fbl = found_by_len
             
@@ -280,16 +475,24 @@ class KeySearcher:
                 "[bold bright_cyan]Remaining:[/bold bright_cyan]", f"[bold white]{remaining}[/bold white] patterns"
             )
             content.add_row(
-                "[dim]  5 chars:[/dim]", f"[{KeySearcher.COLOR_POOR}]{KeySearcher.estimate_time(5, keys_per_sec)}[/{KeySearcher.COLOR_POOR}]  [dim]({fbl[5]}/{pc[5]})[/dim]",
-                "[dim]  6 chars:[/dim]", f"[{KeySearcher.COLOR_COMMON}]{KeySearcher.estimate_time(6, keys_per_sec)}[/{KeySearcher.COLOR_COMMON}]  [dim]({fbl[6]}/{pc[6]})[/dim]"
+                "[dim]  1 char:[/dim]", f"[{KeySearcher.COLOR_POOR}]{KeySearcher.estimate_time(1, keys_per_sec)}[/{KeySearcher.COLOR_POOR}]  [dim]({fbl.get(1,0)}/{pc.get(1,0)})[/dim]",
+                "[dim]  2 chars:[/dim]", f"[{KeySearcher.COLOR_POOR}]{KeySearcher.estimate_time(2, keys_per_sec)}[/{KeySearcher.COLOR_POOR}]  [dim]({fbl.get(2,0)}/{pc.get(2,0)})[/dim]"
             )
             content.add_row(
-                "[dim]  7 chars:[/dim]", f"[{KeySearcher.COLOR_UNCOMMON}]{KeySearcher.estimate_time(7, keys_per_sec)}[/{KeySearcher.COLOR_UNCOMMON}]  [dim]({fbl[7]}/{pc[7]})[/dim]",
-                "[dim]  8 chars:[/dim]", f"[{KeySearcher.COLOR_RARE}]{KeySearcher.estimate_time(8, keys_per_sec)}[/{KeySearcher.COLOR_RARE}]  [dim]({fbl[8]}/{pc[8]})[/dim]"
+                "[dim]  3 chars:[/dim]", f"[{KeySearcher.COLOR_POOR}]{KeySearcher.estimate_time(3, keys_per_sec)}[/{KeySearcher.COLOR_POOR}]  [dim]({fbl.get(3,0)}/{pc.get(3,0)})[/dim]",
+                "[dim]  4 chars:[/dim]", f"[{KeySearcher.COLOR_POOR}]{KeySearcher.estimate_time(4, keys_per_sec)}[/{KeySearcher.COLOR_POOR}]  [dim]({fbl.get(4,0)}/{pc.get(4,0)})[/dim]"
             )
             content.add_row(
-                "[dim]  9 chars:[/dim]", f"[{KeySearcher.COLOR_EPIC}]{KeySearcher.estimate_time(9, keys_per_sec)}[/{KeySearcher.COLOR_EPIC}]  [dim]({fbl[9]}/{pc[9]})[/dim]",
-                "[dim]  10+ chars:[/dim]", f"[{KeySearcher.COLOR_ARTIFACT}]{KeySearcher.estimate_time(10, keys_per_sec)}[/{KeySearcher.COLOR_ARTIFACT}]  [dim]({fbl[10]}/{pc[10]})[/dim]"
+                "[dim]  5 chars:[/dim]", f"[{KeySearcher.COLOR_POOR}]{KeySearcher.estimate_time(5, keys_per_sec)}[/{KeySearcher.COLOR_POOR}]  [dim]({fbl.get(5,0)}/{pc.get(5,0)})[/dim]",
+                "[dim]  6 chars:[/dim]", f"[{KeySearcher.COLOR_COMMON}]{KeySearcher.estimate_time(6, keys_per_sec)}[/{KeySearcher.COLOR_COMMON}]  [dim]({fbl.get(6,0)}/{pc.get(6,0)})[/dim]"
+            )
+            content.add_row(
+                "[dim]  7 chars:[/dim]", f"[{KeySearcher.COLOR_UNCOMMON}]{KeySearcher.estimate_time(7, keys_per_sec)}[/{KeySearcher.COLOR_UNCOMMON}]  [dim]({fbl.get(7,0)}/{pc.get(7,0)})[/dim]",
+                "[dim]  8 chars:[/dim]", f"[{KeySearcher.COLOR_RARE}]{KeySearcher.estimate_time(8, keys_per_sec)}[/{KeySearcher.COLOR_RARE}]  [dim]({fbl.get(8,0)}/{pc.get(8,0)})[/dim]"
+            )
+            content.add_row(
+                "[dim]  9 chars:[/dim]", f"[{KeySearcher.COLOR_EPIC}]{KeySearcher.estimate_time(9, keys_per_sec)}[/{KeySearcher.COLOR_EPIC}]  [dim]({fbl.get(9,0)}/{pc.get(9,0)})[/dim]",
+                "[dim]  10+ chars:[/dim]", f"[{KeySearcher.COLOR_ARTIFACT}]{KeySearcher.estimate_time(10, keys_per_sec)}[/{KeySearcher.COLOR_ARTIFACT}]  [dim]({fbl.get(10,0)}/{pc.get(10,0)})[/dim]"
             )
             
             # Build main panel
@@ -302,10 +505,19 @@ class KeySearcher:
             )
             
             # Calculate ETA for next key based on remaining patterns
-            # Combined probability = sum(1/16^L for each remaining pattern)
+            # For regex patterns: use actual remaining possibilities
+            # For plain patterns: use 16^length
             progress_panel = None  # Default: no progress panel
             if keys_per_sec > 0 and remaining_lengths:
-                combined_prob = sum(1.0 / (16 ** plen) for plen in remaining_lengths)
+                # Calculate combined probability using per-length distribution
+                # For variable-length patterns, each length has different probability
+                from collections import Counter
+                len_counts = Counter(remaining_lengths)
+                combined_prob = 0.0
+                for length, count in len_counts.items():
+                    # Probability per generated key for this length
+                    prob_per_key = count / (16 ** length)
+                    combined_prob += prob_per_key
                 if combined_prob > 0:
                     expected_keys = 1.0 / combined_prob
                     expected_seconds = expected_keys / keys_per_sec
@@ -467,19 +679,37 @@ class KeySearcher:
                             last_found = msg.get('found', last_found)
                             
                             if 'new_key' in msg:
-                                found_keys_list.append((msg['new_key']['pattern'], msg['new_key']['public_key']))
-                                # Update found count by length
-                                plen = len(msg['new_key']['pattern'])
-                                if plen <= 5:
-                                    found_by_len[5] += 1
-                                elif plen >= 10:
+                                pattern = msg['new_key']['pattern']
+                                public_key = msg['new_key']['public_key']
+                                plen = msg['new_key'].get('effective_length', len(pattern))
+                                found_keys_list.append((pattern, public_key, plen))
+                                
+                                # Update pattern metadata (track found keys for this pattern)
+                                if pattern in pattern_metadata:
+                                    pattern_metadata[pattern]['found_keys'].add(public_key)
+                                
+                                # Update found count by length (use effective_length if available)
+                                if plen >= 10:
                                     found_by_len[10] += 1
                                 else:
+                                    # Track 1-9 individually
                                     found_by_len[plen] += 1
-                                # Remove pattern from remaining ONLY if it's <= unique_min
-                                # Patterns > unique_min can be found multiple times
-                                if plen <= startup_info['unique_min'] and plen in remaining_lengths:
-                                    remaining_lengths.remove(plen)
+                                
+                                # Remove pattern from remaining ONLY if it's a plain pattern <= unique_min
+                                # For regex patterns: check if all possibilities are found
+                                # For plain patterns > unique_min: can be found multiple times
+                                is_regex = pattern in pattern_metadata and pattern_metadata[pattern]['possibilities'] > 1
+                                if is_regex:
+                                    # Check if all possibilities for this regex pattern are found
+                                    remaining_for_pattern = pattern_metadata[pattern]['possibilities'] - len(pattern_metadata[pattern]['found_keys'])
+                                    if remaining_for_pattern == 0 and plen in remaining_lengths:
+                                        # All possibilities found, remove from remaining
+                                        remaining_lengths.remove(plen)
+                                else:
+                                    # Plain pattern: remove if <= unique_min
+                                    if plen <= startup_info['unique_min'] and plen in remaining_lengths:
+                                        remaining_lengths.remove(plen)
+                                
                                 # Reset last_find_time to now (for Elapsed timer)
                                 last_find_time = datetime.now().timestamp()
                             
@@ -493,11 +723,17 @@ class KeySearcher:
             pass
     
     def generate_and_check_key(self, worker_id: int, shared_counter, shared_found,
-                                found_patterns_dict, session_found_list, shared_patterns, start_time,
+                                found_patterns_dict, session_found_list, shared_patterns, shared_regex_patterns, start_time,
                                 display_queue, pause_event, stop_event, worker_pause_event, single_pattern_mode) -> None:
         """Worker process for key generation"""
         local_checked = 0
         local_patterns_cache = set(shared_patterns.keys())  # Local cache for performance
+        local_regex_cache = {}  # Compile regex patterns locally
+        for regex_pattern_str in shared_regex_patterns.keys():
+            try:
+                local_regex_cache[regex_pattern_str] = re.compile(regex_pattern_str, re.IGNORECASE)
+            except re.error:
+                pass  # Skip invalid patterns
         last_cache_update = 0
         
         try:
@@ -514,6 +750,13 @@ class KeySearcher:
                 local_checked_total = local_checked
                 if local_checked_total - last_cache_update >= 10000:
                     local_patterns_cache = set(shared_patterns.keys())
+                    # Also update regex cache for hot-reloaded regex patterns
+                    for regex_pattern_str in shared_regex_patterns.keys():
+                        if regex_pattern_str not in local_regex_cache:
+                            try:
+                                local_regex_cache[regex_pattern_str] = re.compile(regex_pattern_str, re.IGNORECASE)
+                            except re.error:
+                                pass  # Skip invalid patterns
                     last_cache_update = local_checked_total
                 
                 private_key = ed25519.Ed25519PrivateKey.generate()
@@ -532,16 +775,34 @@ class KeySearcher:
                 )
                 
                 for pattern in local_patterns_cache:
-                    if public_hex.startswith(pattern):
-                        # In single pattern mode, always save. Otherwise check unique_min
-                        if not single_pattern_mode and len(pattern) <= self.unique_min:
-                            if pattern in found_patterns_dict:
+                    # Check if pattern matches (either plain string or regex)
+                    matches = False
+                    if pattern in local_regex_cache:
+                        # Regex pattern
+                        matches = local_regex_cache[pattern].match(public_hex) is not None
+                    else:
+                        # Plain string pattern
+                        matches = public_hex.startswith(pattern)
+                    
+                    if matches:
+                        # Calculate effective length for unique_min check
+                        _, _, effective_length = self.validate_pattern(pattern)
+                        
+                        # Extract actual matched prefix for duplicate tracking
+                        # For regex patterns, get the actual match length
+                        if pattern in local_regex_cache:
+                            match_obj = local_regex_cache[pattern].match(public_hex)
+                            matched_prefix = match_obj.group(0) if match_obj else public_hex[:effective_length]
+                        else:
+                            matched_prefix = public_hex[:effective_length]
+                        
+                        # Check unique_min for both plain and regex patterns
+                        if not single_pattern_mode and len(matched_prefix) <= self.unique_min:
+                            # Use the actual matched prefix as key, not the pattern
+                            if matched_prefix in found_patterns_dict:
                                 continue
-                            found_patterns_dict[pattern] = True
-                            session_found_list.append(pattern)
-                        elif not single_pattern_mode:
-                            # Pattern > unique_min, save without duplicate check
-                            pass
+                            found_patterns_dict[matched_prefix] = True
+                            session_found_list.append(matched_prefix)
                         
                         self.save_key(private_bytes, public_bytes, public_hex, pattern)
                         
@@ -552,10 +813,22 @@ class KeySearcher:
                         display_queue.put({
                             'total': shared_counter.value,
                             'found': shared_found.value,
-                            'new_key': {'pattern': pattern, 'public_key': public_hex, 'private_key': private_bytes.hex().upper()}
+                            'new_key': {
+                                'pattern': pattern,
+                                'public_key': public_hex,
+                                'private_key': private_bytes.hex().upper(),
+                                'effective_length': effective_length
+                            }
                         })
                         
-                        # In single pattern mode, signal all workers to stop
+                        # Check if regex pattern is complete (all possibilities found)
+                        if pattern in self.pattern_metadata:
+                            total_possible = self.pattern_metadata[pattern]['possibilities']
+                            if shared_found.value >= total_possible:
+                                # All keys found for this regex pattern
+                                stop_event.set()
+                        
+                        # In single pattern mode (non-regex), signal all workers to stop
                         if single_pattern_mode:
                             stop_event.set()
                         break
@@ -576,27 +849,106 @@ class KeySearcher:
         except KeyboardInterrupt:
             return
     
+    def sort_regex_file(self, pattern: str) -> None:
+        """Sort the _all.txt file for regex patterns alphabetically by matched prefix"""
+        safe_pattern = re.sub(r'[^\w]', '_', pattern)
+        filepath = self.output_dir / f"{safe_pattern}_all.txt"
+        
+        if not filepath.exists():
+            return
+        
+        try:
+            with open(filepath, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            # Split into header and entries
+            parts = content.split("="*70 + "\n\n", 1)
+            if len(parts) != 2:
+                return  # Invalid format
+            
+            header = parts[0] + "="*70 + "\n\n"
+            entries_text = parts[1]
+            
+            # Split entries by separator
+            entries = entries_text.split("-"*70 + "\n\n")
+            entries = [e.strip() for e in entries if e.strip()]
+            
+            # Sort by the "Match:" line (first line of each entry)
+            def get_match_prefix(entry):
+                for line in entry.split('\n'):
+                    if line.startswith("Match: "):
+                        return line.split("Match: ")[1].split("...")[0]
+                return ""
+            
+            entries.sort(key=get_match_prefix)
+            
+            # Rebuild file
+            with open(filepath, 'w', encoding='utf-8') as f:
+                f.write(header)
+                for entry in entries:
+                    f.write(entry + "\n")
+                    f.write("-"*70 + "\n\n")
+        except Exception:
+            pass  # Silently fail if sorting doesn't work
+    
     def save_key(self, private_bytes: bytes, public_bytes: bytes, public_hex: str, pattern: str) -> None:
         """Save found key to file"""
-        # Always use counter format: pattern_1.txt, pattern_2.txt, etc.
-        counter = 1
-        filepath = self.output_dir / f"{pattern}_{counter}.txt"
-        while filepath.exists():
-            counter += 1
-            filepath = self.output_dir / f"{pattern}_{counter}.txt"
+        # Sanitize pattern for filename (replace regex chars with underscores)
+        safe_pattern = re.sub(r'[^\w]', '_', pattern)
         
-        # Standard Ed25519 format (128 chars)
-        private_hex_standard = private_bytes.hex().upper()
-        # MeshCore format (192 chars: private + public)
-        private_hex_meshcore = (private_bytes + public_bytes).hex().upper()
+        # Check if this is a regex pattern
+        is_regex = self.is_regex_pattern(pattern)
+        possibilities = self.calculate_regex_possibilities(pattern) if is_regex else 1
         
-        with open(filepath, 'w', encoding='utf-8') as f:
-            f.write(f"Pattern Match: {pattern}\n")
-            f.write(f"Public Key (HEX): {public_hex}\n\n")
-            f.write(f"# Standard Ed25519 Format (128 characters)\n")
-            f.write(f"# This is the pure private key as generated by the Ed25519 algorithm\n")
-            f.write(f"Private Key (Standard): {private_hex_standard}\n\n")
-            f.write(f"# MeshCore Format (192 characters)\n")
+        if is_regex and possibilities > 1:
+            # For regex patterns: one file with all found keys
+            filepath = self.output_dir / f"{safe_pattern}_all.txt"
+            
+            # Standard Ed25519 format (128 chars)
+            private_hex_standard = private_bytes.hex().upper()
+            # MeshCore format (192 chars: private + public)
+            private_hex_meshcore = (private_bytes + public_bytes).hex().upper()
+            
+            # Extract the actual matched prefix for display
+            _, _, effective_len = self.validate_pattern(pattern)
+            matched_prefix = public_hex[:effective_len]
+            
+            # Append to file (create if doesn't exist)
+            mode = 'a' if filepath.exists() else 'w'
+            with open(filepath, mode, encoding='utf-8') as f:
+                if mode == 'w':
+                    # Header for new file
+                    f.write(f"Regex Pattern: {pattern}\n")
+                    f.write(f"Effective Length: {effective_len} chars\n")
+                    f.write(f"Total Possibilities: {possibilities}\n")
+                    f.write(f"="*70 + "\n\n")
+                
+                # Add entry
+                f.write(f"Match: {matched_prefix}...\n")
+                f.write(f"Public Key:  {public_hex}\n")
+                f.write(f"Private Key: {private_hex_standard}\n")
+                f.write(f"MeshCore:    {private_hex_meshcore}\n")
+                f.write("-"*70 + "\n\n")
+        else:
+            # For plain patterns: separate files with counter
+            counter = 1
+            filepath = self.output_dir / f"{safe_pattern}_{counter}.txt"
+            while filepath.exists():
+                counter += 1
+                filepath = self.output_dir / f"{safe_pattern}_{counter}.txt"
+            
+            # Standard Ed25519 format (128 chars)
+            private_hex_standard = private_bytes.hex().upper()
+            # MeshCore format (192 chars: private + public)
+            private_hex_meshcore = (private_bytes + public_bytes).hex().upper()
+            
+            with open(filepath, 'w', encoding='utf-8') as f:
+                f.write(f"Pattern Match: {pattern}\n")
+                f.write(f"Public Key (HEX): {public_hex}\n\n")
+                f.write(f"# Standard Ed25519 Format (128 characters)\n")
+                f.write(f"# This is the pure private key as generated by the Ed25519 algorithm\n")
+                f.write(f"Private Key (Standard): {private_hex_standard}\n\n")
+                f.write(f"# MeshCore Format (192 characters)\n")
             f.write(f"# This format concatenates the private key (128 chars) with the public\n")
             f.write(f"# key (64 chars) for convenience. Use this format for MeshCore devices.\n")
             f.write(f"Private Key (MeshCore): {private_hex_meshcore}\n")
@@ -653,6 +1005,28 @@ class KeySearcher:
             f.write("Pro Tip: Keep a backup of your private key in a secure location. You'll\n")
             f.write("need it if you ever need to restore your device configuration.\n")
     
+    def load_existing_regex_keys(self, pattern: str) -> Set[str]:
+        """Load already found keys from _all.txt file for a regex pattern"""
+        found_keys = set()
+        safe_pattern = re.sub(r'[^\w]', '_', pattern)
+        filepath = self.output_dir / f"{safe_pattern}_all.txt"
+        
+        if not filepath.exists():
+            return found_keys
+        
+        try:
+            with open(filepath, 'r', encoding='utf-8') as f:
+                for line in f:
+                    line = line.strip()
+                    if line.startswith("Public Key:"):
+                        # Extract public key
+                        public_key = line.split("Public Key:")[1].strip()
+                        found_keys.add(public_key)
+        except Exception:
+            pass  # Silently ignore errors
+        
+        return found_keys
+    
     def load_existing_patterns(self) -> Set[str]:
         """Load already found patterns"""
         existing = set()
@@ -670,6 +1044,37 @@ class KeySearcher:
             existing.add(stem)
         return existing
     
+    def get_pattern_length_distribution(self, pattern: str) -> dict:
+        """Get distribution of possibilities across length categories for a pattern.
+        Returns dict with length as key and possibility count as value."""
+        _, _, min_length = self.validate_pattern(pattern)
+        
+        # Check if pattern has variable length quantifiers
+        range_match = re.search(r'\{(\d+),(\d+)\}', pattern)
+        if range_match:
+            min_repeat = int(range_match.group(1))
+            max_repeat = int(range_match.group(2))
+            
+            # For variable-length patterns, we need to calculate possibilities for EACH length
+            # Example: DEADBEE{1,57}F has 1 possibility per length (8 through 64)
+            # The pattern represents different lengths, each with 1 possibility
+            
+            distribution = {}
+            for repeat in range(min_repeat, max_repeat + 1):
+                length = min_length + (repeat - min_repeat)
+                if length >= 10:
+                    distribution[10] = distribution.get(10, 0) + 1
+                else:
+                    distribution[length] = distribution.get(length, 0) + 1
+            return distribution
+        else:
+            # Fixed length pattern - calculate actual possibilities
+            possibilities = self.calculate_regex_possibilities(pattern) if self.is_regex_pattern(pattern) else 1
+            if min_length >= 10:
+                return {10: possibilities}
+            else:
+                return {min_length: possibilities}
+    
     def run(self, num_workers: int = 0) -> None:
         """Start the key search"""
         # 0 means all cores, otherwise use specified number (capped at available cores)
@@ -683,30 +1088,45 @@ class KeySearcher:
         console = Console()
         
         # Count patterns by length category
-        pattern_counts = {5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0}  # 10 = 10+
+        # For regex patterns with variable length, distribute across categories
+        pattern_counts = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0}  # 10 = 10+
         for p in self.patterns:
-            plen = len(p)
-            if plen <= 5:
-                pattern_counts[5] += 1
-            elif plen >= 10:
-                pattern_counts[10] += 1
-            else:
-                pattern_counts[plen] += 1
+            distribution = self.get_pattern_length_distribution(p)
+            for length, count in distribution.items():
+                pattern_counts[length] += count
         
         # Count already found (existing) patterns by length
-        # Only count patterns that are in the current search list
-        existing_counts = {5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0}
-        patterns_upper = {p.upper() for p in self.patterns}
-        for p in existing_patterns:
-            if p.upper() not in patterns_upper:
-                continue  # Skip patterns not in current search list
-            plen = len(p)
-            if plen <= 5:
-                existing_counts[5] += 1
-            elif plen >= 10:
-                existing_counts[10] += 1
+        # For regex patterns: count actual found keys from pattern_metadata
+        # For plain patterns: count from existing_patterns files
+        existing_counts = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0}
+        
+        for p in self.patterns:
+            _, _, plen = self.validate_pattern(p)
+            # Check if this is a regex pattern with loaded keys
+            if p in self.pattern_metadata and len(self.pattern_metadata[p]['found_keys']) > 0:
+                # Regex pattern: count actual found keys
+                found_count = len(self.pattern_metadata[p]['found_keys'])
+                # For variable-length patterns, distribute found keys across lengths
+                if self.is_regex_pattern(p):
+                    distribution = self.get_pattern_length_distribution(p)
+                    for length, count in distribution.items():
+                        if length >= 10:
+                            existing_counts[10] += found_count
+                        else:
+                            existing_counts[length] += found_count
+                else:
+                    if plen >= 10:
+                        existing_counts[10] += found_count
+                    else:
+                        existing_counts[plen] += found_count
             else:
-                existing_counts[plen] += 1
+                # Plain pattern: check if in existing_patterns
+                patterns_upper = {p.upper() for p in self.patterns}
+                if p.upper() in {ep.upper() for ep in existing_patterns}:
+                    if plen >= 10:
+                        existing_counts[10] += 1
+                    else:
+                        existing_counts[plen] += 1
         
         # Build list of remaining pattern lengths (excluding already found)
         # Patterns > unique_min are ALWAYS included (can be found multiple times)
@@ -714,10 +1134,20 @@ class KeySearcher:
         remaining_pattern_lengths = []
         existing_upper = {ep.upper() for ep in existing_patterns}
         for p in self.patterns:
-            plen = len(p)
-            # Include if: single pattern mode OR not found yet OR pattern is longer than unique_min (repeatable)
-            if self.single_pattern_mode or p.upper() not in existing_upper or plen > self.unique_min:
-                remaining_pattern_lengths.append(plen)
+            # For regex patterns, use length distribution
+            if self.is_regex_pattern(p):
+                _, _, plen = self.validate_pattern(p)
+                # Include if: single pattern mode OR not found yet OR pattern is longer than unique_min (repeatable)
+                if self.single_pattern_mode or p.upper() not in existing_upper or plen > self.unique_min:
+                    # Add all lengths from the distribution with their possibility counts
+                    distribution = self.get_pattern_length_distribution(p)
+                    for length, count in distribution.items():
+                        remaining_pattern_lengths.extend([length] * count)
+            else:
+                plen = len(p)
+                # Include if: single pattern mode OR not found yet OR pattern is longer than unique_min (repeatable)
+                if self.single_pattern_mode or p.upper() not in existing_upper or plen > self.unique_min:
+                    remaining_pattern_lengths.append(plen)
         
         # Prepare startup info for display process
         startup_info = {
@@ -729,7 +1159,8 @@ class KeySearcher:
             'pattern_counts': pattern_counts,
             'existing_counts': existing_counts,
             'remaining_pattern_lengths': remaining_pattern_lengths,
-            'verbose': self.verbose
+            'verbose': self.verbose,
+            'pattern_metadata': {p: self.pattern_metadata[p] for p in self.patterns}  # Include pattern metadata for ETA
         }
         
         # Shared state
@@ -739,6 +1170,8 @@ class KeySearcher:
         found_patterns_dict = manager.dict()
         session_found_list = manager.list()
         shared_patterns = manager.dict()  # Shared patterns for hot-reload
+        shared_regex_patterns = manager.dict({p: p for p in self.patterns if self.is_regex_pattern(p)})
+        shared_pattern_metadata = manager.dict(self.pattern_metadata)  # Share metadata with workers
         display_queue = manager.Queue()
         pause_event = mp.Event()
         pause_event.set()
@@ -772,9 +1205,14 @@ class KeySearcher:
                     new_patterns = self.load_patterns(self.patterns_file)
                     added = 0
                     for p in new_patterns:
-                        p_upper = p.upper()
-                        if p_upper not in shared_patterns:
-                            shared_patterns[p_upper] = True
+                        # For plain patterns: use uppercase key
+                        # For regex patterns: use original pattern
+                        p_key = p.upper() if not self.is_regex_pattern(p) else p
+                        if p_key not in shared_patterns:
+                            shared_patterns[p_key] = True
+                            # If regex, also add to shared_regex_patterns
+                            if self.is_regex_pattern(p):
+                                shared_regex_patterns[p] = p
                             added += 1
                     if added > 0:
                         display_queue.put({
@@ -821,30 +1259,43 @@ class KeySearcher:
         kb_thread = threading.Thread(target=keyboard_listener, daemon=True)
         kb_thread.start()
         
-        # Simple console mode - wait for key without display process
-        if self.simple_console and self.single_pattern_mode:
+        # Simple console mode - wait for key(s) without display process
+        if self.simple_console and (self.single_pattern_mode or self.is_regex_search):
             # Start workers
             processes = []
-            found_key_info = None
+            found_keys = []
             
             try:
                 for i in range(num_workers):
                     p = mp.Process(
                         target=self.generate_and_check_key,
                         args=(i, shared_counter, shared_found, found_patterns_dict,
-                              session_found_list, shared_patterns, start_time, display_queue, pause_event,
+                              session_found_list, shared_patterns, shared_regex_patterns, start_time, display_queue, pause_event,
                               stop_event, worker_pause_events[i], self.single_pattern_mode)
                     )
                     p.start()
                     processes.append(p)
                 
-                # Wait for key to be found
+                # Wait for key(s) to be found
                 while not stop_event.is_set():
                     try:
                         msg = display_queue.get(timeout=0.5)
                         if isinstance(msg, dict) and 'new_key' in msg:
-                            found_key_info = msg['new_key']
-                            break
+                            found_keys.append(msg['new_key'])
+                            
+                            # Output private key immediately
+                            private_key = msg['new_key']['private_key']
+                            if self.simple_console_long:
+                                # Long format: MeshCore 192 chars (private + public)
+                                public_key = msg['new_key']['public_key']
+                                print(private_key + public_key)
+                            else:
+                                # Short format: Standard Ed25519 128 chars (private only)
+                                print(private_key)
+                            
+                            # Exit only for single_pattern_mode (not regex)
+                            if self.single_pattern_mode:
+                                break
                     except:
                         pass
                 
@@ -852,17 +1303,6 @@ class KeySearcher:
                 for p in processes:
                     p.terminate()
                     p.join()
-                
-                # Output private key
-                if found_key_info:
-                    private_key = found_key_info['private_key']
-                    if self.simple_console_long:
-                        # Long format: MeshCore 192 chars (private + public)
-                        public_key = found_key_info['public_key']
-                        print(private_key + public_key)
-                    else:
-                        # Short format: Standard Ed25519 128 chars (private only)
-                        print(private_key)
                 
                 self.save_total_stats(shared_counter.value)
                 return
@@ -888,7 +1328,7 @@ class KeySearcher:
                 p = mp.Process(
                     target=self.generate_and_check_key,
                     args=(i, shared_counter, shared_found, found_patterns_dict,
-                          session_found_list, shared_patterns, start_time, display_queue, pause_event,
+                          session_found_list, shared_patterns, shared_regex_patterns, start_time, display_queue, pause_event,
                           stop_event, worker_pause_events[i], self.single_pattern_mode)
                 )
                 p.start()
@@ -904,6 +1344,11 @@ class KeySearcher:
                 display_proc.join(timeout=2)
                 if display_proc.is_alive():
                     display_proc.terminate()
+                
+                # Sort regex pattern files if they exist
+                for pattern in self.patterns:
+                    if self.is_regex_pattern(pattern):
+                        self.sort_regex_file(pattern)
                 
                 self.save_total_stats(shared_counter.value)
                 
@@ -946,6 +1391,11 @@ class KeySearcher:
             if display_proc.is_alive():
                 display_proc.terminate()
             
+            # Sort regex pattern files before showing summary
+            for pattern in self.patterns:
+                if self.is_regex_pattern(pattern):
+                    self.sort_regex_file(pattern)
+            
             self.save_total_stats(shared_counter.value)
             
             elapsed = datetime.now().timestamp() - start_time
@@ -979,8 +1429,8 @@ class KeySearcher:
 def main():
     parser = argparse.ArgumentParser(description='Ed25519 Public Key Pattern Searcher for MeshCore')
     parser.add_argument('pattern', nargs='?', type=str, help='Pattern to search for (e.g., CAFE, DEAD, BEEF)')
-    parser.add_argument('-u', '--unique-min', type=int, default=int(os.getenv('UNIQUE_MIN', '7')), 
-                        help='Patterns with length <= this value are kept unique (default: 7)')
+    parser.add_argument('-u', '--unique-min', type=int, default=int(os.getenv('UNIQUE_MIN', str(DEFAULT_UNIQUE_MIN))), 
+                        help=f'Patterns with length <= this value are kept unique (default: {DEFAULT_UNIQUE_MIN})')
     parser.add_argument('-w', '--workers', type=int, default=0,
                         help='Number of worker processes (0 = all available cores, default: 0)')
     parser.add_argument('-f', '--patterns-file', type=str, default=os.getenv('PATTERNS_FILE', 'searchFor.txt'),
