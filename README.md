@@ -11,7 +11,7 @@ EasyEDA BreMesh-Team: https://u.easyeda.com/bremesh
 
 
 ## Features
-- MCU:            nRF52840 on a ProMicro Board
+- MCU:            [nRF52840 on a ProMicro Board](https://github.com/joric/nrfmicro/wiki/Alternatives/dd5782fb56855cc7e24e884f1e423d664da34db1)
 - RF:	            2 Optionen: HT-RS62, Ra-01SH-P oder (Ra-01SCH-P - no experience with). 
 - Akku:			      1-3x 18650 OR 1-2x 3000mAh (expandable via QuickCharge Port)
 - BMS: 			      XB8789D0 1S 3.2V-4,2V
@@ -19,8 +19,8 @@ EasyEDA BreMesh-Team: https://u.easyeda.com/bremesh
 - DC-DC:          TPS62840DLCR 3.3V/1A with deep sleep function (optional)
 - Display:        SSD1513 0,96" 128x64 OLED via i2c (optional)
 - RTC:			      TinyRTC via i2c (optional)
-- Temp. Sensor    DHT11 via i2c (optional)
-- Weather Sensor: BME280 via i2c (optional)
+- Temp. Sensor    ATH10 via i2c (optional)
+- Weather Sensor: BMP280 via i2c (optional)
 - Fuse:			      2A - replacable (optional - else: 0Ohm Resistor)
 
 - Additional Ports
