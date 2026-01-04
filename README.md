@@ -4,12 +4,7 @@ MeshCore Narrow Repeater fürs BreMesh.de
 
 EasyEDA BreMesh-Team: https://u.easyeda.com/bremesh
 
-Als Projekt zum mal zu lernen, wie ich ein PCB Designen kann, habe ich mir einen MeshCore Repeater als Vorbild genommen.
-
-Um das Projekt https://bremesh.de/ mit weiteren Repeatern zu unterstützen, ist mir die Idee gekommen einen simplen, günstigen und effizienten Solarbetriebenen MeshCore Repeater zu bauen.
-
-Für mich steht hier ganz klar der Weg im Vordergrund, um für mich zu lernen.
-
+"Lieber was unnötiges machen, als nur dumm zu reden" - Irgendjemand, sicherlich.
 
 ![image](images/RePeter_Front.png)
 ![image](images/RePeter_V1_2-box.PNG)
@@ -36,40 +31,28 @@ Für mich steht hier ganz klar der Weg im Vordergrund, um für mich zu lernen.
   - This Port is also Active while the Power is OFF. Its made to make use of external quickcharger. Also this can be used to connect more 1S Batteries if needed.
 
 
-# Komponenten
-- Wetterfestes Gehäuse
-- Solarpanel
-- Antenne
-- Akkus
-- Laderegler (Mit oder ohne MPPT)
-- Lora Meshtastic Chip - besteht aus:
-  - Mikrocontroller
-  - LoRa Funkchip
-  - opt. Batteriemanagementsystem
-  - opt. DC-DC 3.3V Wandler
-  - opt. Sensoren
+# Komponents
 
-Zubehör:
-- Silikon
-- Antennendichtband
-
-
-## Antenne
+## Antenna
 
 - Alfa 868MHz
   - https://quantumlink.shop/products/alfa-aoa-868-5acm-5dbi-868mhz-outdoor-lora-antenne
+  - 16€ mit Versand
 
 ## Mikrocontroller
 
 - nRF52840 Controller in Form eines ProMicro Board - dieses ist mit abstand die stromsparenste Alternative. Produkte wie SenseCap, HelTec Tracker usw. benutzen ebenfalls diesen MCU. 
   - https://a.aliexpress.com/_EHdhbaG
+  - ~3€ - 10 Stück 27€ mit Versand.
 
 ## LoRa-Funkchip
 
 - Ra-01SH IC:SX1264 +22dBm (Diesen Chip verwende ich zur Zeit)
   - günstigste Variante, soll evtl. bei niedrigen Temperaturn Probleme machen - noch nicht Feststellen können.
   - https://a.aliexpress.com/_EJohH6k
+  - ~3,50€ - 17,09€ für 5 mit Versand
 - HT-RA62 IC:SX1264 +22dBm
   - Solidester 22dBm Chip laut Internet - teurer - noch keinen Unterschied gemerkt.
+  - ~4€ - 37,18€ für 10 mit Versand
 
 
