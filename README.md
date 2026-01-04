@@ -1,13 +1,15 @@
-# BreMesh Repeater "RePeter"
+# BreMesh Repeater "RePeter" V1.2
 
 MeshCore Narrow Repeater fürs BreMesh.de
 
 EasyEDA BreMesh-Team: https://u.easyeda.com/bremesh
 
-"Lieber was unnützes machen, anstatt nur dumm zu reden" - Irgendjemand, sicherlich.
+
 
 ![image](images/RePeter_Front.png)
-![image](images/RePeter_V1_2-box.PNG)
+![image](images/RePeterV1_2_Box.PNG)
+
+- 2026-01-04 - 10 Boards dieser Version 1.2 sind bestellt - tests ausbleibend
 
 
 ## Features
