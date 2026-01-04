@@ -122,25 +122,13 @@ RePeter Firmware by [Nagios](https://github.com/timniklas/MeshCore-Bremen)
   - ~3€ - 10 pieces 27€ with shipping.
 
 ### LoRa Radio Chip
-- Ra-01SH IC:SX1264 +22dBm (This is the chip I currently use)  - Chipset: Semtech SX1262
-  - Frequency: 410-525MHz / 863-928MHz
-  - TX Power: +22dBm max
-  - RX Sensitivity: -148dBm @ SF12/BW125kHz
-  - LoRa, FSK, GFSK, OOK modulation
-  - Low power consumption: 4.2mA RX, 120mA TX @ +22dBm
-  - Supply voltage: 1.8V to 3.7V
-  - SPI interface  - Cheapest option, supposedly has problems at low temperatures - haven't been able to confirm yet.
+- Ra-01SH +22dBm (This is the chip I currently use)
+Cheapest option, supposedly has problems at low temperatures - haven't been able to confirm yet.
   - https://a.aliexpress.com/_EJohH6k
   - ~3.50€ - 34.50€ for 10 with shipping
-- HT-RA62 IC:SX1264 +22dBm  - Chipset: Semtech SX1262
-  - Frequency: 410-525MHz / 863-928MHz
-  - TX Power: +22dBm max
-  - RX Sensitivity: -148dBm @ SF12/BW125kHz
-  - LoRa, FSK, GFSK modulation
-  - Low power consumption: 4.2mA RX, 120mA TX @ +22dBm
-  - Supply voltage: 1.8V to 3.7V
-  - SPI interface
-  - Temperature range: -40°C to +85°C (better cold tolerance)  - Most solid 22dBm chip according to the internet - more expensive - haven't noticed any difference yet.
+- HT-RA62 +22dBm 
+  - better cold tolerance 
+  - Most solid 22dBm chip according to the internet - more expensive - haven't noticed any difference yet.
   - ~4€ - 37.18€ for 10 with shipping
 
 
