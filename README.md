@@ -4,7 +4,7 @@ MeshCore Narrow Repeater fürs BreMesh.de
 
 EasyEDA BreMesh-Team: https://u.easyeda.com/bremesh
 
-"Lieber was unnötiges machen, als nur dumm zu reden" - Irgendjemand, sicherlich.
+"Lieber was unnötiges machen, anstatt nur dumm zu reden" - Irgendjemand, sicherlich.
 
 ![image](images/RePeter_Front.png)
 ![image](images/RePeter_V1_2-box.PNG)
