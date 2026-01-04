@@ -10,16 +10,33 @@ Um das Projekt https://bremesh.de/ mit weiteren Repeatern zu unterstützen, ist 
 
 Für mich steht hier ganz klar der Weg im Vordergrund, um für mich zu lernen.
 
-<details><summary>KLICK um Foto anzusehen</summary>
 
-![image](images/RePeter_Front.png) |
+![image](images/RePeter_Front.png)
+![image](images/RePeter_V1_2-box.PNG)
 
-</details>
+
+## Features
+- MCU:            nRF52840 on a ProMicro Board
+- RF:	            2 Optionen: HT-RS62, Ra-01SH-P oder (Ra-01SCH-P - no experience with). 
+- Akku:			      1-3x 18650 OR 1-2x 3000mAh (expandable via QuickCharge Port)
+- BMS: 			      XB8789D0 1S 3.2V-4,2V
+- ChargeIC:       LTH7R - 4.5V - 5.5V to 4.3V, 300/500mAh via USB-C Port.
+- DC-DC:          TPS62840DLCR 3.3V/1A with deep sleep function (optional)
+- Display:        SSD1513 0,96" 128x64 OLED via i2c (optional)
+- RTC:			      TinyRTC via i2c (optional)
+- Temp. Sensor    DHT11 via i2c (optional)
+- Weather Sensor: BME280 via i2c (optional)
+- Fuse:			      2A - replacable (optional - else: 0Ohm Resistor)
+
+- Additional Ports
+  - 2xI2C (6x total)
+	- GPS
+	- Externer PowerSwitch
+- QuickCharge Port:
+  - This Port is also Active while the Power is OFF. Its made to make use of external quickcharger. Also this can be used to connect more 1S Batteries if needed.
+
 
 # Komponenten
-
-generell brauchen wir für einen solchen Repeater
-
 - Wetterfestes Gehäuse
 - Solarpanel
 - Antenne
@@ -29,15 +46,13 @@ generell brauchen wir für einen solchen Repeater
   - Mikrocontroller
   - LoRa Funkchip
   - opt. Batteriemanagementsystem
-  - opt. DC-DC 5V Wandler
+  - opt. DC-DC 3.3V Wandler
   - opt. Sensoren
 
 Zubehör:
-
 - Silikon
 - Antennendichtband
 
-Grundlegend muss das Board also folgendes können:
 
 ## Antenne
 
@@ -46,20 +61,15 @@ Grundlegend muss das Board also folgendes können:
 
 ## Mikrocontroller
 
-- nRF52840 Controller in Form eines ProMicro Board
+- nRF52840 Controller in Form eines ProMicro Board - dieses ist mit abstand die stromsparenste Alternative. Produkte wie SenseCap, HelTec Tracker usw. benutzen ebenfalls diesen MCU. 
   - https://a.aliexpress.com/_EHdhbaG
 
 ## LoRa-Funkchip
 
-Hier gibt es einige Optionen zu denen ich noch keine klare Meinung habe
-
 - Ra-01SH IC:SX1264 +22dBm (Diesen Chip verwende ich zur Zeit)
   - günstigste Variante, soll evtl. bei niedrigen Temperaturn Probleme machen - noch nicht Feststellen können.
   - https://a.aliexpress.com/_EJohH6k
-- Ra-01SCH-P IC:??? +31dBm
-  - Nicht dokumentiert, dass dieser Chip in der Kombination funktioniert. Kann laut Datenblatt bis zu 2.5w Sendeleistung erreichen für die Meshtastic-Unencrypted-Lizenz-Funker mit zusätzlicher 5v DC-DC Stromverbindung am PA-Pin
-  - https://a.aliexpress.com/_EIKJRxq
-  - Nicht erlaubt zu betreiben über 22dBm
-  - Kein stabiler Betrieb unter +22dBm in meinen Tests bisher
 - HT-RA62 IC:SX1264 +22dBm
-  - Solidester 22dBm Chip laut Internet - teurer - keine Erfahrung
+  - Solidester 22dBm Chip laut Internet - teurer - noch keinen Unterschied gemerkt.
+
+
