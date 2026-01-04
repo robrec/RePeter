@@ -22,15 +22,60 @@ RePeter Firmware by [Nagios](https://github.com/timniklas/MeshCore-Bremen)
 
 ## Features
 - MCU:            [nRF52840 on a ProMicro Board](https://github.com/joric/nrfmicro/wiki/Alternatives/dd5782fb56855cc7e24e884f1e423d664da34db1)
-- RF:	            2 Options: HT-RA62, Ra-01SH-P or (Ra-01SCH-P - no experience with). 
+  - CPU: 32-bit ARM Cortex-M4F @ 64MHz
+  - Flash: 1MB
+  - RAM: 256KB
+  - Bluetooth 5.4 (BLE, Bluetooth Mesh)
+  - USB 2.0 Full Speed (for programming & power)
+  - Ultra-low power: ~1Wh/day consumption
+  - Multiple GPIO, I2C, SPI, UART interfaces
+- RF:	            2 Options: HT-RA62 or Ra-01SH-P
+  - Both: Semtech SX1262, +22dBm TX, -148dBm RX, 863-928MHz
+  - HT-RA62: better cold tolerance and performance
+  - LoRa/FSK/GFSK modulation, 4.2mA RX, 120mA TX @ +22dBm
+  - SPI interface, 1.8V-3.7V supply
 - Battery:		      1-3x 18650 OR 1-2x 3000mAh (expandable via QuickCharge Port)
 - BMS: 			      XB8789D0 1S 3.2V-4.2V
-- ChargeIC:       LTH7R - 4.5V - 5.5V to 4.3V, 300/500mAh via USB-C Port.
-- DC-DC:          TPS62840DLCR 3.3V/1A with deep sleep function (optional)
+  - Overcharge Protection (4.2V ±0.05V)
+  - Over-discharge Protection (2.5V ±0.1V)
+  - Overcurrent Protection (3-5A)
+  - Short Circuit Protection
+- ChargeIC:       LTH7R - 4.5V - 5.5V to 4.3V, 300/500mAh via USB-C Port
+  - Constant Current/Constant Voltage (CC/CV) charging
+  - Programmable charge current up to 500mA (set up to 500mA)
+  - Charge voltage: 4.2V (1% accuracy)
+  - Trickle charge: 2.9V
+  - Thermal protection with automatic current regulation
+  - Automatic charge termination at 1/10th charge current
+  - Auto-recharge function
+  - Standby current: <25uA
+  - No external MOSFET, sense resistor or blocking diode required
+  - Charge status indication
+- DC-DC:          TPS62840DLCR 3.3V/750mA with deep sleep function (optional)
+  - Input voltage: 1.8V to 6.5V
+  - Output voltage: 3.3V (fixed)
+  - Output current: 750mA max
+  - Quiescent current (IQ): 60nA (ultra-low power)
+  - Efficiency: >90% at light loads
+  - DCS-Control (Dynamic Current Scaling)
+  - Overcurrent protection
+  - Thermal shutdown
+  - Output discharge function
+  - EN (Enable) pin for shutdown control (deep sleep mode)
 - Display:        SSD1306 0.96" 128x64 OLED via i2c (optional)
 - RTC:			      TinyRTC via i2c (optional)
-- Temp. Sensor    AHT10 via i2c (optional)
+- Temp. Sensor (inside)   AHT10 via i2c (optional)
+  - Temperature range: -40°C to +85°C
+  - Temperature accuracy: ±0.3°C
+  - Humidity range: 0-100% RH
+  - Humidity accuracy: ±2% RH
+  - Low power consumption: <1µA in sleep mode
 - Weather Sensor: BMP280 via i2c (optional)
+  - Pressure range: 300-1100 hPa
+  - Pressure accuracy: ±1 hPa
+  - Temperature range: -40°C to +85°C
+  - Temperature accuracy: ±1°C
+  - Low power consumption: <3µA in sleep mode
 - Fuse:			      2A - replaceable (optional - else: 0Ohm Resistor)
 
 - Additional Ports
@@ -77,12 +122,25 @@ RePeter Firmware by [Nagios](https://github.com/timniklas/MeshCore-Bremen)
   - ~3€ - 10 pieces 27€ with shipping.
 
 ### LoRa Radio Chip
-- Ra-01SH IC:SX1264 +22dBm (This is the chip I currently use)
-  - Cheapest option, supposedly has problems at low temperatures - haven't been able to confirm yet.
+- Ra-01SH IC:SX1264 +22dBm (This is the chip I currently use)  - Chipset: Semtech SX1262
+  - Frequency: 410-525MHz / 863-928MHz
+  - TX Power: +22dBm max
+  - RX Sensitivity: -148dBm @ SF12/BW125kHz
+  - LoRa, FSK, GFSK, OOK modulation
+  - Low power consumption: 4.2mA RX, 120mA TX @ +22dBm
+  - Supply voltage: 1.8V to 3.7V
+  - SPI interface  - Cheapest option, supposedly has problems at low temperatures - haven't been able to confirm yet.
   - https://a.aliexpress.com/_EJohH6k
   - ~3.50€ - 34.50€ for 10 with shipping
-- HT-RA62 IC:SX1264 +22dBm
-  - Most solid 22dBm chip according to the internet - more expensive - haven't noticed any difference yet.
+- HT-RA62 IC:SX1264 +22dBm  - Chipset: Semtech SX1262
+  - Frequency: 410-525MHz / 863-928MHz
+  - TX Power: +22dBm max
+  - RX Sensitivity: -148dBm @ SF12/BW125kHz
+  - LoRa, FSK, GFSK modulation
+  - Low power consumption: 4.2mA RX, 120mA TX @ +22dBm
+  - Supply voltage: 1.8V to 3.7V
+  - SPI interface
+  - Temperature range: -40°C to +85°C (better cold tolerance)  - Most solid 22dBm chip according to the internet - more expensive - haven't noticed any difference yet.
   - ~4€ - 37.18€ for 10 with shipping
 
 
