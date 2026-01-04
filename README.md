@@ -6,10 +6,13 @@ EasyEDA BreMesh-Team: https://u.easyeda.com/bremesh
 
 RePeter Firmware von [Nagios](https://github.com/timniklas/MeshCore-Bremen)
 
+
+- 2026-01-04 - V1.2 Fertiggestellt. 10 Boards bestellt - tests ausbleibend
+
 ![image](images/RePeter_Front.png)
 ![image](images/RePeterV1_2_Box.PNG)
 
-- 2026-01-04 - 10 Boards dieser Version 1.2 sind bestellt - tests ausbleibend
+
 
 
 ## Features
