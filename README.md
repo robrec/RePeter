@@ -17,6 +17,29 @@ RePeter Firmware by [Nagios](https://github.com/timniklas/MeshCore-Bremen)
 ![image](images/RePeter_Front.png)
 ![image](images/RePeterV1_2_Box.PNG)
 
+## Configurations
+
+### Basic Configuration RePeter1.2 - 1 Akku, BMS
+
+| Part                 | Designator | Quantity | Price            | Total            |
+| -------------------- | ---------- | -------- | ---------------- | ---------------- |
+| ProMicro nRF52       | M1         | 1        | 2,70€           | 2,70€           |
+| Ra-01SH-P/HT-RA62    | M2         | 1        | 3,50€           | 3,50€           |
+| 1M Ohm Resistor 0603 | R3,R4      | 2        | 0,0025€         | 0,01€           |
+| 3x4mm SMD Button     | REBOOT     | 1        | 0,038€          | 0,04€           |
+| Slide Switch Power   | SW4        | 1        | 0,29€           | 0,29€           |
+| 0Ohm Resistor 1208   | U8         | 1        | 0,06€           | 0,06€           |
+| 100Ohm Resistor 0603 | R21        | 1        | 0,0012€         | 0,01€           |
+| 100nF Cap. 0603      | C7         | 1        | 0,003€          | 0,01€           |
+| BMS XB8789D0         | U4         | 1        | 0,20€           | 0,20€           |
+| MY-18650-1 Holder    | BT1,BT2    | 2        | 0.24€           | 0,48€           |
+|                      |            |          |                  | **7,30€** |
+|                      |            |          |                  |                  |
+| PCB:                 |            | 1        | +2,60€          | +2,60            |
+|                      |            |          | **Total:** | **9,90€** |
+
+(more soon...)
+
 ## Features
 
 - MCU:            [nRF52840 on a ProMicro Board](https://github.com/joric/nrfmicro/wiki/Alternatives/dd5782fb56855cc7e24e884f1e423d664da34db1)
@@ -155,23 +178,3 @@ RePeter Firmware by [Nagios](https://github.com/timniklas/MeshCore-Bremen)
 
 # BOM
 
-## Minimal Configuration
-
-### Basic Configuration RePeter1.2 - 1 Akku, BMS
-
-| Part                 | Designator | Quantity | Price            | Total            |
-| -------------------- | ---------- | -------- | ---------------- | ---------------- |
-| ProMicro nRF52       | M1         | 1        | 2,70€           | 2,70€           |
-| Ra-01SH-P/HT-RA62    | M2         | 1        | 3,50€           | 3,50€           |
-| 1M Ohm Resistor 0603 | R3,R4      | 2        | 0,0025€         | 0,01€           |
-| 3x4mm SMD Button     | REBOOT     | 1        | 0,038€          | 0,04€           |
-| Slide Switch Power   | SW4        | 1        | 0,29€           | 0,29€           |
-| 0Ohm Resistor 1208   | U8         | 1        | 0,06€           | 0,06€           |
-| 100Ohm Resistor 0603 | R21        | 1        | 0,0012€         | 0,01€           |
-| 100nF Cap. 0603      | C7         | 1        | 0,003€          | 0,01€           |
-| BMS XB8789D0         | U4         | 1        | 0,20€           | 0,20€           |
-| MY-18650-1 Holder    | BT1,BT2    | 2        | 0.24€           | 0,48€           |
-|                      |            |          |                  | **7,30€** |
-|                      |            |          |                  |                  |
-| PCB:                 |            | 1        | +2,60€          | +2,60            |
-|                      |            |          | **Total:** | **9,90€** |
