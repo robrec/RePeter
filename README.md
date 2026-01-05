@@ -10,7 +10,6 @@ RePeter Firmware by [Nagios](https://github.com/timniklas/MeshCore-Bremen)
 
 **Note:** After building several FakeTecV4 boards ([GitHub](https://github.com/gargomoma/fakeTec_pcb/issues/16)), I wanted to build my own affordable and versatile repeater.  This is a learning project for me. These are my first attempts and I make no claims that any of this actually works.
 
-
 ---
 
 - 2026-01-04 - V1.2 Completed. Parts for 10 boards ordered - tests pending
@@ -22,28 +21,28 @@ RePeter Firmware by [Nagios](https://github.com/timniklas/MeshCore-Bremen)
 
 ### Basic Configuration RePeter1.2 - 1 Akku, BMS
 
-| Part                   | Designator | Quantity            | Price            | Total             |
-| ---------------------- | ---------- | ------------------- | ---------------- | ----------------- |
-| ProMicro nRF52         | M1         | 1                   | 2,70€           | 2,70€            |
-| Ra-01SH-P/HT-RA62      | M2         | 1                   | 3,50€           | 3,50€            |
-| 1M Ohm Resistor 0603   | R3,R4      | 2                   | 0,0025€         | 0,01€            |
-| 3x4mm SMD Button       | REBOOT     | 1                   | 0,038€          | 0,04€            |
-| Slide Switch Power     | SW4        | 1                   | 0,29€           | 0,29€            |
-| 0Ohm Resistor 1208     | U8         | 1                   | 0,06€           | 0,06€            |
-| 100Ohm Resistor 0603   | R21        | 1                   | 0,0012€         | 0,01€            |
-| 100nF Cap. 0603        | C7         | 1                   | 0,003€          | 0,01€            |
-| BMS XB8789D0 SOP-8-EP | U4         | 1                   | 0,20€           | 0,20€            |
-| MY-18650-1 Holder      | BT1,BT2    | 2                   | 0.24€           | 0,48€            |
-|                        |            |                     |                  | **7,30€**  |
-|                        |            |                     |                  |                   |
-|                        |            | PCB                 | 2,50€           | **9,80**    |
-|                        |            | Case                | 5,69€           | **15,49€** |
-|                        |            | Antenna             | 14€             | **29,49€** |
-|                        |            | N-Type Adapter+Tape | 5€              | **34,49€** |
-|                        |            | Akku                | 5€              | **39,49€** |
-|                        |            | Solarpanel          | 5€              | **44,49€** |
-|                        |            |                     |                  |                   |
-|                        |            |                     | **Total:** | **~45€**   |
+| Part                                                                                                        | Designator | Quantity            | Price            | Total             |
+| ----------------------------------------------------------------------------------------------------------- | ---------- | ------------------- | ---------------- | ----------------- |
+| [ProMicro nRF52](https://github.com/joric/nrfmicro/wiki/Alternatives/dd5782fb56855cc7e24e884f1e423d664da34db1) | M1         | 1                   | 2,70€           | 2,70€            |
+| [Ra-01SH-P](Documentation/RF/Ra-01SH-P.pdf)/[HT-RA62](Documentation/RF/HT-RA62(Rev1.1).pdf)                       | M2         | 1                   | 3,50€           | 3,50€            |
+| 1M Ohm Resistor 0603                                                                                        | R3,R4      | 2                   | 0,0025€         | 0,01€            |
+| 3x4mm SMD Button                                                                                            | REBOOT     | 1                   | 0,038€          | 0,04€            |
+| Slide Switch Power                                                                                          | SW4        | 1                   | 0,29€           | 0,29€            |
+| 0Ohm Resistor 1208                                                                                          | U8         | 1                   | 0,06€           | 0,06€            |
+| 100Ohm Resistor 0603                                                                                        | R21        | 1                   | 0,0012€         | 0,01€            |
+| 100nF Cap. 0603                                                                                             | C7         | 1                   | 0,003€          | 0,01€            |
+| BMS XB8789D0 SOP-8-EP                                                                                      | U4         | 1                   | 0,20€           | 0,20€            |
+| MY-18650-1 Holder                                                                                           | BT1,BT2    | 2                   | 0.24€           | 0,48€            |
+|                                                                                                             |            |                     |                  | **7,30€**  |
+|                                                                                                             |            |                     |                  |                   |
+|                                                                                                             |            | PCB                 | 2,50€           | **9,80**    |
+|                                                                                                             |            | Case                | 5,69€           | **15,49€** |
+|                                                                                                             |            | Antenna             | 14€             | **29,49€** |
+|                                                                                                             |            | N-Type Adapter+Tape | 5€              | **34,49€** |
+|                                                                                                             |            | Akku                | 5€              | **39,49€** |
+|                                                                                                             |            | Solarpanel          | 5€              | **44,49€** |
+|                                                                                                             |            |                     |                  |                   |
+|                                                                                                             |            |                     | **Total:** | **~45€**   |
 
 (more configurations soon)
 
@@ -58,10 +57,10 @@ RePeter Firmware by [Nagios](https://github.com/timniklas/MeshCore-Bremen)
   - USB 2.0 Full Speed (for programming & power)
   - Ultra-low power: ~1Wh/day consumption
   - Multiple GPIO, I2C, SPI, UART interfaces
-- RF:	            2 Options: HT-RA62 or Ra-01SH-P
+- RF:	            2 Options: [HT-RA62](Documentation/RF/HT-RA62(Rev1.1).pdf) or [Ra-01SH-P](Documentation/RF/Ra-01SH-P.pdf)
 
   - Both: Semtech SX1262, +22dBm TX, -148dBm RX, 863-928MHz
-  - HT-RA62: better cold tolerance and performance
+  - HT-RA62: better cold tolerance and performance ([pinmap](Documentation/RF/HT-RA62-Pinmap.png), [reference design](Documentation/RF/HT-RA62_Reference_design.pdf))
   - LoRa/FSK/GFSK modulation, 4.2mA RX, 120mA TX @ +22dBm
   - SPI interface, 1.8V-3.7V supply
 - Battery:		      1-3x 18650 OR 1-2x 3000mAh (expandable via QuickCharge Port)
@@ -71,7 +70,7 @@ RePeter Firmware by [Nagios](https://github.com/timniklas/MeshCore-Bremen)
   - Over-discharge Protection (2.5V ±0.1V)
   - Overcurrent Protection (3-5A)
   - Short Circuit Protection
-- ChargeIC:       LTH7R - 4.5V - 5.5V to 4.3V, 300/500mAh via USB-C Port
+- ChargeIC:       [LTH7R](Documentation/ProMicro/Charger-IC_LTH7R.PDF) - 4.5V - 5.5V to 4.3V, 300/500mAh via USB-C Port
 
   - Constant Current/Constant Voltage (CC/CV) charging
   - Programmable charge current up to 500mA (set up to 500mA)
@@ -138,6 +137,8 @@ RePeter Firmware by [Nagios](https://github.com/timniklas/MeshCore-Bremen)
 - 2W 4,49€ https://a.aliexpress.com/_EvV01rK
 - 3W ~ 12€
 
+**Note on MPPT:** This design intentionally does not include MPPT (Maximum Power Point Tracking). For small solar panels (2-3W/5V), the added cost and complexity of MPPT circuitry outweigh the marginal efficiency gains. The simple direct charging approach keeps the design affordable and minimizes component count. For detailed analysis on MPPT benefits and when it makes sense, see [Documentation/MPPT.md](Documentation/MPPT.md).
+
 ## Batteries
 
 ### 18650
@@ -174,11 +175,11 @@ RePeter Firmware by [Nagios](https://github.com/timniklas/MeshCore-Bremen)
 
 ### LoRa Radio Chip
 
-- Ra-01SH +22dBm (This is the chip I currently use)
+- [Ra-01SH-P](Documentation/RF/Ra-01SH-P.pdf) +22dBm (This is the chip I currently use)
   Cheapest option, supposedly has problems at low temperatures - haven't been able to confirm yet.
   - https://a.aliexpress.com/_EJohH6k
   - ~3.50€ - 34.50€ for 10 with shipping
-- HT-RA62 +22dBm
+- [HT-RA62](Documentation/RF/HT-RA62(Rev1.1).pdf) +22dBm
   - better cold tolerance
   - Most solid 22dBm chip according to the internet - more expensive - haven't noticed any difference yet.
   - ~4€ - 37.18€ for 10 with shipping
