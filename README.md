@@ -138,8 +138,7 @@ Due to the design and board layout, it is difficult to connect a non-USB-C solar
 
 For this reason, I have developed a small adapter board that plugs into the ProMicro's USB-C port and provides both a USB-C and a JST2.0 connector. This enables easy connection of standard solar panels with JST2.0 connectors or USB-C. Additionally, for programming/updating the firmware, the data ports on the Flash-Port can be used.
 
-![ProMicro ChargeBoard](RePeter_Tools/ProMicro_ChargeBoard/3D_USB-C_RePeter_V1_front.png)
-![ProMicro ChargeBoard Back](RePeter_Tools/ProMicro_ChargeBoard/3DUSB-C_RePeter_V1_back.png)
+<img src="RePeter_Tools/ProMicro_ChargeBoard/3D_USB-C_RePeter_V1_front.png" alt="ProMicro ChargeBoard Front" width="40%"> <img src="RePeter_Tools/ProMicro_ChargeBoard/3DUSB-C_RePeter_V1_back.png" alt="ProMicro ChargeBoard Back" width="40%">
 
 More information and manufacturing files: [ProMicro ChargeBoard README](RePeter_Tools/ProMicro_ChargeBoard/README.md)
 
@@ -167,7 +166,9 @@ More information and manufacturing files: [ProMicro ChargeBoard README](RePeter_
     - If this route is chosen, the BMS, fuse, and battery holders no longer need to be populated.
     - Through this route with a LiFePo4 PCB with the corresponding components e.g. in the lid, the RePeter can also be used for this purpose.
 
-## PCB RePeterV1.2
+<img src="images/LiFePo4_Extention_Board.png" alt="LiFePo4 Extension Board" width="33%">
+
+*Note: This is a concept design for a possible LiFePo4 extension board for RePeter V1.2*PCB RePeterV1.2
 
 - 2.50€ - 10x ordered, 25€ with shipping + customs
 
