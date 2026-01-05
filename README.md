@@ -50,11 +50,6 @@ RePeter Firmware by [Nagios](https://github.com/timniklas/MeshCore-Bremen)
 
 - MCU:            [nRF52840 on a ProMicro Board](https://github.com/joric/nrfmicro/wiki/Alternatives/dd5782fb56855cc7e24e884f1e423d664da34db1)
 
-  - CPU: 32-bit ARM Cortex-M4F @ 64MHz
-  - Flash: 1MB
-  - RAM: 256KB
-  - Bluetooth 5.4 (BLE, Bluetooth Mesh)
-  - USB 2.0 Full Speed (for programming & power)
   - Ultra-low power: ~1Wh/day consumption
   - Multiple GPIO, I2C, SPI, UART interfaces
 - RF:	            2 Options: [HT-RA62](Documentation/RF/HT-RA62(Rev1.1).pdf) or [Ra-01SH-P](Documentation/RF/Ra-01SH-P.pdf)
@@ -62,7 +57,6 @@ RePeter Firmware by [Nagios](https://github.com/timniklas/MeshCore-Bremen)
   - Both: Semtech SX1262, +22dBm TX, -148dBm RX, 863-928MHz
   - HT-RA62: better cold tolerance and performance ([pinmap](Documentation/RF/HT-RA62-Pinmap.png), [reference design](Documentation/RF/HT-RA62_Reference_design.pdf))
   - LoRa/FSK/GFSK modulation, 4.2mA RX, 120mA TX @ +22dBm
-  - SPI interface, 1.8V-3.7V supply
 - Battery:		      1-3x 18650 OR 1-2x 3000mAh (expandable via QuickCharge Port)
 - BMS: 			      XB8789D0 1S 3.2V-4.2V
 
@@ -90,9 +84,6 @@ RePeter Firmware by [Nagios](https://github.com/timniklas/MeshCore-Bremen)
   - Quiescent current (IQ): 60nA (ultra-low power)
   - Efficiency: >90% at light loads
   - DCS-Control (Dynamic Current Scaling)
-  - Overcurrent protection
-  - Thermal shutdown
-  - Output discharge function
   - EN (Enable) pin for shutdown control (deep sleep mode)
 - Display:        SSD1306 0.96" 128x64 OLED via i2c (optional)
 - RTC:			      TinyRTC via i2c (optional)
