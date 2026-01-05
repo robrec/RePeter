@@ -119,6 +119,12 @@ RePeter Firmware by [Nagios](https://github.com/timniklas/MeshCore-Bremen)
   - https://quantumlink.shop/products/alfa-aoa-868-5acm-5dbi-868mhz-outdoor-lora-antenne
   - 16€ with shipping
 
+### Antenna Bracket
+
+To securely mount the U.FL adapter on the board, an antenna bracket has been designed. This bracket ensures a stable connection and prevents stress on the delicate U.FL connector during installation and operation.
+
+<img src="images/AntennaBracket.jpg" alt="Antenna Bracket" width="33%"> <img src="images/AntennaBracketHole.PNG" alt="Antenna Bracket Slot" width="33%">
+
 ## Case
 
 - 5,69€ https://a.aliexpress.com/_EznOlhm
@@ -168,7 +174,9 @@ More information and manufacturing files: [ProMicro ChargeBoard README](RePeter_
 
 <img src="images/LiFePo4_Extention_Board.png" alt="LiFePo4 Extension Board" width="33%">
 
-*Note: This is a concept design for a possible LiFePo4 extension board for RePeter V1.2*PCB RePeterV1.2
+*Note: This is a concept design for a possible LiFePo4 extension board for RePeter V1.2*
+
+## PCB RePeterV1.2
 
 - 2.50€ - 10x ordered, 25€ with shipping + customs
 
