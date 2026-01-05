@@ -130,6 +130,19 @@ RePeter Firmware by [Nagios](https://github.com/timniklas/MeshCore-Bremen)
 
 **Note on MPPT:** This design intentionally does not include MPPT (Maximum Power Point Tracking). For small solar panels (2-3W/5V), the added cost and complexity of MPPT circuitry outweigh the marginal efficiency gains. The simple direct charging approach keeps the design affordable and minimizes component count. For detailed analysis on MPPT benefits and when it makes sense, see [Documentation/MPPT.md](Documentation/MPPT.md).
 
+### Connecting the Solar Panel
+
+The ProMicro's charge IC is only accessible via the USB-C port. No pins on the header or under the board connect to it.
+
+Due to the design and board layout, it is difficult to connect a non-USB-C solar panel. Additionally, the space inside the case is often insufficient due to the length of the USB-C connector.
+
+For this reason, I have developed a small adapter board that plugs into the ProMicro's USB-C port and provides both a USB-C and a JST2.0 connector. This enables easy connection of standard solar panels with JST2.0 connectors or USB-C. Additionally, for programming/updating the firmware, the data ports on the Flash-Port can be used.
+
+![ProMicro ChargeBoard](RePeter_Tools/ProMicro_ChargeBoard/3D_USB-C_RePeter_V1_front.png)
+![ProMicro ChargeBoard Back](RePeter_Tools/ProMicro_ChargeBoard/3DUSB-C_RePeter_V1_back.png)
+
+More information and manufacturing files: [ProMicro ChargeBoard README](RePeter_Tools/ProMicro_ChargeBoard/README.md)
+
 ## Batteries
 
 ### 18650

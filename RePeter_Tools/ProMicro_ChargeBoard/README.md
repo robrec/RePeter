@@ -1,4 +1,4 @@
-# USB-C Adapter für RePeter
+# ProMirco USB-C Charge Board Adapter for RePeter
 
 Dieses kleine PCB ist ein USB-C Adapter für das BreMesh RePeter Projekt.
 
