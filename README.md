@@ -119,6 +119,13 @@ RePeter Firmware by [Nagios](https://github.com/timniklas/MeshCore-Bremen)
   - https://quantumlink.shop/products/alfa-aoa-868-5acm-5dbi-868mhz-outdoor-lora-antenne
   - 16€ with shipping
 
+### Antenna N-Type Connector
+
+- ~ 4€ [AliExpress](https://de.aliexpress.com/item/1005006171666073.html)
+- ~11€ [Amazon](https://www.amazon.de/Vecys-Koaxialkabel-Wireless-Netzwerkkarten-Repeater/dp/B0C8J131PD)
+
+<img src="images/ntype_connector.PNG" alt="N-Type Connector" width="33%">
+
 ### Antenna Bracket
 
 To securely mount the U.FL adapter on the board, an antenna bracket has been designed. This bracket ensures a stable connection and prevents stress on the delicate U.FL connector during installation and operation.
@@ -127,11 +134,11 @@ To securely mount the U.FL adapter on the board, an antenna bracket has been des
 
 ## Case
 
-- 5,69€ https://a.aliexpress.com/_EznOlhm
+- 5,69€ [AliExpress](https://a.aliexpress.com/_EznOlhm)
 
 ## Solar Panel 5V
 
-- 2W 4,49€ https://a.aliexpress.com/_EvV01rK
+- 2W 4,49€ [AliExpress](https://a.aliexpress.com/_EvV01rK)
 - 3W ~ 12€
 
 **Note on MPPT:** This design intentionally does not include MPPT (Maximum Power Point Tracking). For small solar panels (2-3W/5V), the added cost and complexity of MPPT circuitry outweigh the marginal efficiency gains. The simple direct charging approach keeps the design affordable and minimizes component count. For detailed analysis on MPPT benefits and when it makes sense, see [Documentation/MPPT.md](Documentation/MPPT.md).
@@ -159,7 +166,7 @@ More information and manufacturing files: [ProMicro ChargeBoard README](RePeter_
 
 ### LiPo
 
-- https://www.amazon.de/Meshnology-USB-Ladekabel-103665-Schutzplatine-ESP32-Modulplatine-Schwarz/dp/B0F1FHHH5X/
+- [Amazon](https://www.amazon.de/Meshnology-USB-Ladekabel-103665-Schutzplatine-ESP32-Modulplatine-Schwarz/dp/B0F1FHHH5X/)
 - 1x 7.50€ ~ 11Wh ~ 8-10 days battery life
 - 2x 15€ ~ 22Wh ~ 16-21 days battery life
 
