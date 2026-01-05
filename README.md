@@ -8,7 +8,8 @@ RePeter Firmware by [Nagios](https://github.com/timniklas/MeshCore-Bremen)
 
 ---
 
-**Note:** This is a learning project for me. These are my first attempts and I make no claims that any of this actually works.
+**Note:** After building several FakeTecV4 boards ([GitHub](https://github.com/gargomoma/fakeTec_pcb/issues/16)), I wanted to build my own affordable and versatile repeater.  This is a learning project for me. These are my first attempts and I make no claims that any of this actually works.
+
 
 ---
 
@@ -21,28 +22,28 @@ RePeter Firmware by [Nagios](https://github.com/timniklas/MeshCore-Bremen)
 
 ### Basic Configuration RePeter1.2 - 1 Akku, BMS
 
-| Part                 | Designator | Quantity            | Price            | Total             |
-| -------------------- | ---------- | ------------------- | ---------------- | ----------------- |
-| ProMicro nRF52       | M1         | 1                   | 2,70€           | 2,70€            |
-| Ra-01SH-P/HT-RA62    | M2         | 1                   | 3,50€           | 3,50€            |
-| 1M Ohm Resistor 0603 | R3,R4      | 2                   | 0,0025€         | 0,01€            |
-| 3x4mm SMD Button     | REBOOT     | 1                   | 0,038€          | 0,04€            |
-| Slide Switch Power   | SW4        | 1                   | 0,29€           | 0,29€            |
-| 0Ohm Resistor 1208   | U8         | 1                   | 0,06€           | 0,06€            |
-| 100Ohm Resistor 0603 | R21        | 1                   | 0,0012€         | 0,01€            |
-| 100nF Cap. 0603      | C7         | 1                   | 0,003€          | 0,01€            |
-| BMS XB8789D0         | U4         | 1                   | 0,20€           | 0,20€            |
-| MY-18650-1 Holder    | BT1,BT2    | 2                   | 0.24€           | 0,48€            |
-|                      |            |                     |                  | **7,30€**  |
-|                      |            |                     |                  |                   |
-|                      |            | PCB                 | 2,50€           | **9,80**    |
-|                      |            | Case                | 5,69€           | **15,49€** |
-|                      |            | Antenna             | 14€             | **29,49€** |
-|                      |            | N-Type Adapter+Tape | 5€              | **34,49€** |
-|                      |            | Akku                | 5€              | **39,49€** |
-|                      |            | Solarpanel          | 5€              | **44,49€** |
-|                      |            |                     |                  |                   |
-|                      |            |                     | **Total:** | **~45€**   |
+| Part                   | Designator | Quantity            | Price            | Total             |
+| ---------------------- | ---------- | ------------------- | ---------------- | ----------------- |
+| ProMicro nRF52         | M1         | 1                   | 2,70€           | 2,70€            |
+| Ra-01SH-P/HT-RA62      | M2         | 1                   | 3,50€           | 3,50€            |
+| 1M Ohm Resistor 0603   | R3,R4      | 2                   | 0,0025€         | 0,01€            |
+| 3x4mm SMD Button       | REBOOT     | 1                   | 0,038€          | 0,04€            |
+| Slide Switch Power     | SW4        | 1                   | 0,29€           | 0,29€            |
+| 0Ohm Resistor 1208     | U8         | 1                   | 0,06€           | 0,06€            |
+| 100Ohm Resistor 0603   | R21        | 1                   | 0,0012€         | 0,01€            |
+| 100nF Cap. 0603        | C7         | 1                   | 0,003€          | 0,01€            |
+| BMS XB8789D0 SOP-8-EP | U4         | 1                   | 0,20€           | 0,20€            |
+| MY-18650-1 Holder      | BT1,BT2    | 2                   | 0.24€           | 0,48€            |
+|                        |            |                     |                  | **7,30€**  |
+|                        |            |                     |                  |                   |
+|                        |            | PCB                 | 2,50€           | **9,80**    |
+|                        |            | Case                | 5,69€           | **15,49€** |
+|                        |            | Antenna             | 14€             | **29,49€** |
+|                        |            | N-Type Adapter+Tape | 5€              | **34,49€** |
+|                        |            | Akku                | 5€              | **39,49€** |
+|                        |            | Solarpanel          | 5€              | **44,49€** |
+|                        |            |                     |                  |                   |
+|                        |            |                     | **Total:** | **~45€**   |
 
 (more configurations soon)
 
