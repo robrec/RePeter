@@ -12,7 +12,7 @@ RePeter Firmware by [Nagios](https://github.com/timniklas/MeshCore-Bremen)
 
 ---
 
-- 2026-01-04 - V1.2 Completed. 10 boards ordered - tests pending
+- 2026-01-04 - V1.2 Completed. Parts for 10 boards ordered - tests pending
 
 ![image](images/RePeter_Front.png)
 ![image](images/RePeterV1_2_Box.PNG)
@@ -175,6 +175,3 @@ RePeter Firmware by [Nagios](https://github.com/timniklas/MeshCore-Bremen)
   - better cold tolerance
   - Most solid 22dBm chip according to the internet - more expensive - haven't noticed any difference yet.
   - ~4€ - 37.18€ for 10 with shipping
-
-# BOM
-
